@@ -18,15 +18,8 @@ final class ViiCommand: Command {
             throw CommandError.invalidArgumentType("database", type: ViiDatabaseType.Type.self)
         }
         sayHello()
-        
-        // @todo, tidy user supplied credentials
-        let host = context.console.ask("database host")
-        let port = context.console.ask("database port")
-        let username = context.console.ask("database username")
-        let password = context.console.ask("database password")
-        let name = context.console.ask("database name")
-        
-        let credentials = Credential(port: port, host: host, username: username, password: password, database: database)
+        // get credentials
+        let credentials = try getCredentials(console: context.console)
         // @todo, convert to factory
         let dbConnection = AnyViiConnection(ViiPostgresConnection(eventLoop: self.eventLoop, credentials: credentials))
         let connection = try dbConnection.connection.wait()
@@ -57,6 +50,22 @@ final class ViiCommand: Command {
             console.output(line.consoleText(color: .brightMagenta))
         }
     }
+    
+    /// creates a `Credential` struct for connection to DB
+    /// - Parameter console: `Console`
+    func getCredentials(console: Console) throws -> Credential {
+        console.info("We're going to need to use your DB info, please answer the following:", newLine: true)
+        let host = console.ask("Your database host eg (127.0.0.1)".consoleText(color: .brightYellow))
+        let portAsString = console.ask("What port is your database running on?".consoleText(color: .brightYellow))
+        let username = console.ask("The username for this database".consoleText(color: .brightYellow))
+        let password = console.ask("The password for this database".consoleText(color: .brightYellow), isSecure: true)
+        let database = console.ask("And finally, your database name".consoleText(color: .brightYellow))
+        guard let port = Int(portAsString) else {
+            console.error("Unable to convert the given database port number of \(portAsString) to integer")
+            exit(1)
+        }
+        return Credential(port: port, host: host, username: username, password: password, database: database)
+    }
 
     private let welcome: [String] = [
        " __      ___ _    _____          _         _____                           _                ",
@@ -64,7 +73,8 @@ final class ViiCommand: Command {
        "  \\ \\  / / _ _  | |     ___   __| | ___  | |  __  ___ _ __   ___ _ __ __ _| |_ ___  _ __    ",
        "   \\ \\/ / | | | | |    / _ \\ / _` |/ _ \\ | | |_ |/ _ \\ '_ \\ / _ \\ '__/ _` | __/ _ \\| '__|  ",
        "    \\  /  | | | | |___| (_) | (_| |  __/ | |__| |  __/ | | |  __/ | | (_| | || (_) | |     ",
-       "     \\/   |_|_|  \\_____\\___/ \\__,_|\\___|  \\_____|\\___|_| |_|\\___|_|  \\__,_|\\__\\___/|_|     "
+       "     \\/   |_|_|  \\_____\\___/ \\__,_|\\___|  \\_____|\\___|_| |_|\\___|_|  \\__,_|\\__\\___/|_|     ",
+       "                                                                                                    "
     ]
 
 }
