@@ -1,5 +1,6 @@
 import NIO
 
+/// returns database connection and required methods
 public class ConnectionFactory {
     public static func getViiConnection(selectedDb: ViiDatabaseType, eventLoop: EventLoop, credentials: Credential) throws -> ViiConnection {
             switch selectedDb {
