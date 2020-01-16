@@ -1,3 +1,4 @@
+/// struct for decoding a table returned from `getTables()`
 public struct ViiTable: Codable {
     public var table_name: String
 }
