@@ -20,14 +20,11 @@ final class ViiCommand: Command {
         sayHello()
         // get credentials
         let credentials = try getCredentials(console: context.console)
-        // @todo, convert to factory
-        let dbConnection = AnyViiConnection(ViiPostgresConnection(eventLoop: self.eventLoop, credentials: credentials))
-        let connection = try dbConnection.connection.wait()
-        let tables = try connection.getTables(schema: nil, skip: nil).wait()
-        
+        let connection = try ConnectionFactory.getViiConnection(selectedDb: db, eventLoop: self.eventLoop, credentials: credentials)
+        defer { connection.close() }
+        // @todo add in skip tables i.e fluent and schema incase not public for Postgres - these can be after 1.0
+        let tables = try connection.getTables().wait()
         print(tables)
-        // @todo move to main.swift/protocol
-        defer { try! connection.close().wait() }
     }
     
     struct Signature: CommandSignature {
