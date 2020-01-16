@@ -1,14 +1,14 @@
 import PostgresKit
 
-public class ViiPostgresConnection: ViiConnection {
+class ViiPostgresConnection: ViiConnection {
 
-    public var connection: PostgresConnection
+    var connection: PostgresConnection
 
-    public init(eventLoop: EventLoop, credentials: Credential) throws {
-        self.connection = try ViiPostgres(eventLoop: eventLoop, credentials: credentials).connection
+    init(eventLoop: EventLoop, credentials: Credential) throws {
+        self.connection = try PostgresConnection.create(on: eventLoop, credentials: credentials).wait()
     }
     
-    public func getTables() -> EventLoopFuture<[ViiTable]> {
+    func getTables(schema: String) -> EventLoopFuture<[ViiTable]> {
         return self.connection.withConnection{ db in
             return db.sql()
                      .raw("SELECT table_name::text FROM information_schema.tables WHERE table_schema='public'")
@@ -17,7 +17,7 @@ public class ViiPostgresConnection: ViiConnection {
         }
     }
     
-    public func close() {
+    func close() {
         try! self.connection.close().wait()
     }
 }

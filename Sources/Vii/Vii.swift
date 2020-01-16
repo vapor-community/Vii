@@ -22,8 +22,7 @@ final class ViiCommand: Command {
         let credentials = try getCredentials(console: context.console)
         let connection = try ConnectionFactory.getViiConnection(selectedDb: db, eventLoop: self.eventLoop, credentials: credentials)
         defer { connection.close() }
-        // @todo add in skip tables i.e fluent and schema incase not public for Postgres - these can be after 1.0
-        let tables = try connection.getTables().wait()
+        let tables = try connection.getTables(schema: credentials.database).wait()
         print(tables)
     }
     
