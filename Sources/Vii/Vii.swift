@@ -1,6 +1,7 @@
 import ConsoleKit
 import ViiLibrary
 import NIO
+import Foundation
 
 final class ViiCommand: Command {
     
@@ -22,8 +23,7 @@ final class ViiCommand: Command {
         let credentials = try getCredentials(console: context.console)
         let connection = try ConnectionFactory.getViiConnection(selectedDb: db, eventLoop: self.eventLoop, credentials: credentials)
         defer { connection.close() }
-        let tables = try connection.getTables(schema: credentials.database).wait()
-        print(tables)
+        let tables = try connection.getTables().wait()
     }
     
     struct Signature: CommandSignature {
