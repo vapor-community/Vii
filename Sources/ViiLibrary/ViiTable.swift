@@ -1,18 +1,18 @@
 /// struct for decoding a table returned from `getTables()`
 public struct ViiTable: Codable {
-    public var table_name: String
+    public var tableName: String
 }
 
 extension ViiTable {
     
     /// splits by non alpha-numeric chars
     var split: [Substring] {
-        return self.table_name.split{ !$0.isLetter }
+        return self.tableName.split{ !$0.isLetter }
     }
     
     /// Removes non alpha chars
     func stripped() -> String {
-        return self.table_name.split{ !$0.isLetter }.joined()
+        return self.tableName.split{ !$0.isLetter }.joined()
     }
     
     /// formats common naming conventions to Swift class naming conventions where possible
