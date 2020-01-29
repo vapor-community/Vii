@@ -10,21 +10,19 @@ class ViiMySQLConnection: ViiConnection {
         self.schema = credentials.database
     }
     
-    func getTables() -> EventLoopFuture<[ViiTable]> {
+    func getTables() -> EventLoopFuture<[Table]> {
         return self.connection.withConnection { db in
             return db.sql()
                 .raw("SELECT table_name as tableName FROM information_schema.tables WHERE table_schema = \(bind: self.schema)")
-                .all(decoding: ViiTable.self)
+                .all(decoding: Table.self)
         }
     }
     
     func close() {
          try! self.connection.close().wait() 
     }
-}
-
-extension ViiMySQLConnection: ViiGenerate {
-    func getColumns(table: String) -> EventLoopFuture<[ViiColumn]> {
+    
+    func getColumns(table: String) -> EventLoopFuture<[Column]> {
         return self.connection.withConnection { db in
             return db.sql()
                      .raw("""
@@ -39,9 +37,7 @@ extension ViiMySQLConnection: ViiGenerate {
                         AND TABLE_NAME = \(bind: table)
                         ORDER BY table_name,ordinal_position
                     """)
-                .all(decoding: ViiColumn.self)
+                .all(decoding: Column.self)
         }
     }
 }
-
-

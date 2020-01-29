@@ -70,7 +70,7 @@ struct SQLType: Equatable {
         return .init("longtext")
     }
     static var mediumInt: SQLType {
-        return .init("mediumInt")
+        return .init("mediumint")
     }
     static var mediumText: SQLType {
         return .init("mediumtext")
@@ -109,16 +109,13 @@ struct SQLType: Equatable {
         return .init("timestampz")
     }
     static var uuid: SQLType {
-        return .init("xml")
+        return .init("uuid")
     }
     static var varbit: SQLType {
         return .init("varbit")
     }
     static var varchar: SQLType {
         return .init("varchar")
-    }
-    static var void: SQLType {
-        return .init("void")
     }
     static var xml: SQLType {
         return .init("varchar")
@@ -159,20 +156,19 @@ struct SQLType: Equatable {
         return .init("_uuid")
     }
     
-    private var swiftType: String {
+    var swiftType: String {
         switch self {
-        case .bit: return "bit"
+        case .bit: return "XXX"
         case .bool, .boolean: return "Bool"
         case .box: return "XXX"
-        case .bpchar, .char, .text, .tinyText, .mediumText, .longText: return "String"
-        case .dec, .decimal, .double: return "Double"
+        case .bpchar, .char, .mediumText, .longText, .text, .tinyText, .varchar: return "String"
+        case .bytea: return "XXX"
+        case .dec, .decimal, .double, .money, .numeric: return "Double"
         case .date, .dateTime: return "Date"
         case .float4, .float8: return "Float"
-        case .int2, .int4, .int8, .tinyInt, .mediumInt, .bigInt: return "Int"
+        case .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt, .bigInt: return "Int"
         case .json: return "JSON"
         case .jsonb: return "JSON"
-        case .money: return "XXX"
-        case .numeric: return "XXX"
         case .point: return "XXX"
         case .polygon: return "XXX"
         case .time: return "XXX"
@@ -180,8 +176,6 @@ struct SQLType: Equatable {
         case .timestampz: return "KEYPATH"
         case .uuid: return "UUID"
         case .varbit: return "XXX"
-        case .varchar: return "String"
-        case .void: return "XXX"
         case .xml: return "XXX"
         case .year: return "XXX"
         // array switch
@@ -195,4 +189,6 @@ struct SQLType: Equatable {
         default: return "Couldn't map type"
         }
     }
+    
+    static let foundationArray: [SQLType] = [.uuid, ._uuid]
 }

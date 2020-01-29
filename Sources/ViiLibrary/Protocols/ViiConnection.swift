@@ -1,11 +1,11 @@
 import NIO
 
 public protocol ViiConnection: AnyObject {
-    func getTables() -> EventLoopFuture<[ViiTable]>
-    func close()
     
-}
-
-protocol ViiGenerate {
-    func getColumns(table: String) -> EventLoopFuture<[ViiColumn]>
+    /// gets all tables for specified database
+    func getTables() -> EventLoopFuture<[Table]>
+    /// closes current db connection group
+    func close()
+    /// gets columns and types for  a table
+    func getColumns(table: String) -> EventLoopFuture<[Column]>
 }
