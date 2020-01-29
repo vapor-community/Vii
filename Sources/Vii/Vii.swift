@@ -1,7 +1,6 @@
 import ConsoleKit
 import ViiLibrary
 import NIO
-import Foundation
 
 final class ViiCommand: Command {
     
@@ -24,6 +23,11 @@ final class ViiCommand: Command {
         let connection = try ConnectionFactory.getViiConnection(selectedDb: db, eventLoop: self.eventLoop, credentials: credentials)
         defer { connection.close() }
         let tables = try connection.getTables().wait()
+        let contents: [FileContents] = try tables.map { table in
+            let columns = try connection.getColumns(table: table.tableName).wait()
+            return GenerateFile.generateFileContents(table: table, columns: columns)
+        }
+        print(contents)
     }
     
     struct Signature: CommandSignature {
@@ -50,6 +54,7 @@ final class ViiCommand: Command {
     /// creates a `Credential` struct for connection to DB
     /// - Parameter console: `Console`
     func getCredentials(console: Console) throws -> Credential {
+        return Credential(port: 5432, host: "127.0.0.1", username: "vapor", password: "password", database: "sportsyv3")
         console.info("We're going to need to use your DB info, please answer the following:", newLine: true)
         let host = console.ask("Your database host eg (127.0.0.1)".consoleText(color: .brightYellow))
         let portAsString = console.ask("What port is your database running on?".consoleText(color: .brightYellow))

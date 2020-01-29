@@ -10,13 +10,13 @@ class ViiPostgresConnection: ViiConnection {
         self.schema = credentials.database
     }
     
-    func getTables() -> EventLoopFuture<[ViiTable]> {
+    func getTables() -> EventLoopFuture<[Table]> {
         return self.connection.withConnection{ db in
             return db.sql()
                      .raw("""
                         SELECT table_name::text as "tableName" FROM information_schema.tables WHERE table_schema='public'
                      """)
-                     .all(decoding: ViiTable.self)
+                     .all(decoding: Table.self)
             
         }
     }
@@ -24,10 +24,8 @@ class ViiPostgresConnection: ViiConnection {
     func close() {
         try! self.connection.close().wait()
     }
-}
-
-extension ViiPostgresConnection: ViiGenerate {
-    func getColumns(table: String) -> EventLoopFuture<[ViiColumn]> {
+    
+    func getColumns(table: String) -> EventLoopFuture<[Column]> {
         return self.connection.withConnection { db in
             return db.sql()
                      .raw("""
@@ -37,7 +35,7 @@ extension ViiPostgresConnection: ViiGenerate {
                         WHERE table_schema = 'public'
                         AND table_name = \(bind: table)
                     """)
-                    .all(decoding: ViiColumn.self)
+                    .all(decoding: Column.self)
         }
     }
 }

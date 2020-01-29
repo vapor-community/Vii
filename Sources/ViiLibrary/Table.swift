@@ -1,9 +1,9 @@
 /// struct for decoding a table returned from `getTables()`
-public struct ViiTable: Codable {
+public struct Table: Codable {
     public var tableName: String
 }
 
-extension ViiTable {
+extension Table {
     
     /// splits by non alpha-numeric chars
     var split: [Substring] {
@@ -16,7 +16,7 @@ extension ViiTable {
     }
     
     /// formats common naming conventions to Swift class naming conventions where possible
-    func format() -> String {
+    public func format() -> String {
         let components = self.split
         let indicies: [String] = components.map{
             if false == $0.isUpperCaseString {
