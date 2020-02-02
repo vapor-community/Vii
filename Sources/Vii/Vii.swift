@@ -24,10 +24,11 @@ final class ViiCommand: Command {
         defer { connection.close() }
         let tables = try connection.getTables().wait()
         let contents: [FileContents] = try tables.map { table in
-            let columns = try connection.getColumns(table: table.tableName).wait()
-            return GenerateFile.generateFileContents(table: table, columns: columns)
+            let columns = try connection.getColumns(table: table).wait()
+            return try GenerateFile.generateFileContents(table: table, columns: columns, on: connection)
         }
-        print(contents)
+        print(contents[8].getFileContents())
+        
     }
     
     struct Signature: CommandSignature {
