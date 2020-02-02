@@ -7,5 +7,9 @@ public protocol ViiConnection: AnyObject {
     /// closes current db connection group
     func close()
     /// gets columns and types for  a table
-    func getColumns(table: String) -> EventLoopFuture<[Column]>
+    func getColumns(table: Table) -> EventLoopFuture<[Column]>
+    /// get primary keys
+    func getPrimaryKey(table: Table) -> EventLoopFuture<DatabaseKey?>
+    /// get foreign keys
+    func getForeignKeys(table: Table) -> EventLoopFuture<[DatabaseKey]>
 }

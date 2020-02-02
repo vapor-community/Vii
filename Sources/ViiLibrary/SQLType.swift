@@ -160,20 +160,16 @@ struct SQLType: Equatable {
         switch self {
         case .bit: return "XXX"
         case .bool, .boolean: return "Bool"
-        case .box: return "XXX"
+        case .box, .point, .polygon: return "XXX"
         case .bpchar, .char, .mediumText, .longText, .text, .tinyText, .varchar: return "String"
         case .bytea: return "XXX"
         case .dec, .decimal, .double, .money, .numeric: return "Double"
-        case .date, .dateTime: return "Date"
+        case .date, .dateTime, .timestamp, .timestampz: return "Date"
         case .float4, .float8: return "Float"
         case .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt, .bigInt: return "Int"
         case .json: return "JSON"
         case .jsonb: return "JSON"
-        case .point: return "XXX"
-        case .polygon: return "XXX"
         case .time: return "XXX"
-        case .timestamp: return "KEYPATH"
-        case .timestampz: return "KEYPATH"
         case .uuid: return "UUID"
         case .varbit: return "XXX"
         case .xml: return "XXX"
@@ -190,5 +186,5 @@ struct SQLType: Equatable {
         }
     }
     
-    static let foundationArray: [SQLType] = [.uuid, ._uuid]
+    static let foundationArray: [SQLType] = [.uuid, ._uuid, .json, .jsonb]
 }
