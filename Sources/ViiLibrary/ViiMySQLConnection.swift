@@ -65,7 +65,7 @@ class ViiMySQLConnection: ViiConnection {
                  WHERE
                      kcu.table_schema = schema()
                      AND constraint_name = 'PRIMARY'
-                     AND kcu.table_name = '\(table.tableName)'
+                    AND kcu.table_name = '\(bind: table.tableName)'
                      AND kcu.column_name = c.column_name;
                  """)
                 .first(decoding: Column.self)
@@ -95,7 +95,7 @@ class ViiMySQLConnection: ViiConnection {
                          WHERE
                              tcc. `TABLE_NAME` = c. `TABLE_NAME`
                              AND tcc.CONSTRAINT_TYPE = 'FOREIGN KEY')
-                    AND c.table_name = '\(table.tableName)'
+                    AND c.table_name = '\(bind: table.tableName)'
                  """)
                 .all(decoding: Column.self)
         }

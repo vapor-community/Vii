@@ -45,6 +45,9 @@ struct SQLType: Equatable {
     static var double: SQLType {
         return .init("double")
     }
+    static var float: SQLType {
+        return .init("float")
+    }
     static var float4: SQLType {
         return .init("float4")
     }
@@ -191,7 +194,7 @@ struct SQLType: Equatable {
         case .char, .mediumText, .longText, .text, .tinyText, .varchar: return "String"
         case .dec, .decimal, .double, .money, .numeric: return "Double"
         case .date, .dateTime, .time, .timestamp, .timestampz: return "Date"
-        case .float4, .float8: return "Float"
+        case .float, .float4, .float8: return "Float"
         case .int, .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt, .bigInt, .year: return "Int"
         case .json: return "JSON"
         case .jsonb: return "JSON"
