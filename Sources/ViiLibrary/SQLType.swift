@@ -160,7 +160,7 @@ struct SQLType: Equatable {
         switch self {
         case .bit: return "XXX"
         case .bool, .boolean: return "Bool"
-        case .box, .point, .polygon: return "XXX"
+        case .box, .point, .polygon: return "Postgres Geometric Unsupported"
         case .bpchar, .char, .mediumText, .longText, .text, .tinyText, .varchar: return "String"
         case .bytea: return "XXX"
         case .dec, .decimal, .double, .money, .numeric: return "Double"

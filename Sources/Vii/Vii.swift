@@ -35,9 +35,6 @@ final class ViiCommand: Command {
         @Argument(name: "db", help: "Specify what RDBMs you're using")
         var db: String
         
-        @Option(name: "skipTable", help: "Skip tables from code generation by providing comma separated argument --skipTable=fluent,user...")
-        var skipName: String?
-        
         init() {}
     }
     

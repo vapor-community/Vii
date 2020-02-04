@@ -8,11 +8,14 @@ final class ViiTests: XCTestCase {
     let table = Table(tableName: "user")
     let columns = [
         Column(columnName: "user_id", dataType: "uuid", isNullable: true),
-        Column(columnName: "b", dataType: "point", isNullable: false),
+        Column(columnName: "category_id", dataType: "uuid", isNullable: false),
         Column(columnName: "c", dataType: "varchar", isNullable: true),
         Column(columnName: "d", dataType: "_int2", isNullable: false),
         Column(columnName: "e", dataType: "bool", isNullable: true)
     ]
+    let primaryKey = DatabaseKey(columnName: "user_id", dataType: "uuid", constraint: DatabaseKey.KeyType.primary, isNullable: true)
+    let foreignKeys = [DatabaseKey(columnName: "category_id", dataType: "uuid", constraint: DatabaseKey.KeyType.foreign, isNullable: false)]
+    let optionalForeignKeys = [DatabaseKey(columnName: "category_id", dataType: "uuid", constraint: DatabaseKey.KeyType.foreign, isNullable: true)]
         
     func testPascalCaseTable() throws {
         let PascalCaseTable = Table(tableName: "UserProfile")
@@ -54,17 +57,43 @@ final class ViiTests: XCTestCase {
         XCTAssertEqual(testLowerCaseTable.tableName.format(), secondaryOutput)
     }
     
-//    func testFoundationImport() throws {
-//        let generator = GenerateFile.generateFileContents(table: table, columns: [columns[0]], on: )
-//        let contents = generator.getFileContents().split(separator: "\n")[0]
-//        XCTAssertEqual(contents, "import Foundation")
-//    }
-//
-//    func testDeclaration() throws {
-//        let generator = GenerateFile.generateFileContents(table: table, columns: [columns[0]])
-//        let contents = generator.getFileContents().split(separator: "\n")[1]
-//        XCTAssertEqual(contents, "final class User: Model {")
-//    }
+    func testClassDeclaration() throws {
+        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
+        let declaration = contents.classDeclaration
+        let expected = "final class User: Model {"
+        XCTAssertEqual(declaration, expected)
+    }
+    
+    func testSchemaDeclaration() throws {
+        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
+        let schema = contents.schema
+        let expected = "static let schema = \"\(table.tableName)\""
+        XCTAssertEqual(schema, expected)
+    }
+    
+    func testPrimaryKeyWrapper() throws {
+        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
+        let pk = contents.primaryKeyWrapper
+        XCTAssertEqual(pk, "@ID(key: \"user_id\")")
+    }
+    
+    func testPrimaryKeyVariable() throws {
+        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
+        let pk = contents.primaryKeyVariable
+        XCTAssertEqual(pk, "\n\tvar userId: UUID?")
+    }
+    
+    func testForeignKey() throws {
+        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
+        let fk = contents.foreignKeyDeclarations!
+        XCTAssertEqual(fk, "\n\t@Parent(key: \"category_id\")\n\tvar categoryId: UUID\n")
+    }
+    
+    func testOptionalForeignKey() throws {
+        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: optionalForeignKeys)
+        let fk = contents.foreignKeyDeclarations!
+        XCTAssertEqual(fk, "\n\t@OptionalParent(key: \"category_id\")\n\tvar categoryId: UUID?\n")
+    }
 
     static var allTests = [
         ("testPascalCaseTable", testPascalCaseTable),
@@ -72,8 +101,12 @@ final class ViiTests: XCTestCase {
         ("testSeparatedColumns", testSeparatedColumns),
         ("testSnakeCaseTable", testSnakeCaseTable),
         ("testSpecialCharsPascal", testSpecialCharsPascal),
-        ("testCamelCaseTable", testCamelCaseTable)
-     //   ("testUpperCaseTable", testUpperCaseTable),
-       // ("testFoundationImport", testFoundationImport)
+        ("testCamelCaseTable", testCamelCaseTable),
+        ("testClassDeclaration", testClassDeclaration),
+        ("testSchemaDeclaration", testSchemaDeclaration),
+        ("testPrimaryKeyWrapper", testPrimaryKeyWrapper),
+        ("testPrimaryKeyVariable", testPrimaryKeyVariable),
+        ("testForeignKey", testForeignKey),
+        ("testOptionalForeignKey", testOptionalForeignKey)
     ]
 }

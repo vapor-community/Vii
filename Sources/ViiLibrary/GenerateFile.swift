@@ -25,6 +25,6 @@ public struct GenerateFile {
         let primaryKey = try on.getPrimaryKey(table: table).wait()
         let foreignKeys = try on.getForeignKeys(table: table).wait()
 
-        return FileContents(imports: uniqueImports, originalName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
+        return FileContents(imports: uniqueImports, originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
     }
 }
