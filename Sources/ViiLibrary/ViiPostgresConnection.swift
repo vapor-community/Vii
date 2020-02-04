@@ -40,38 +40,45 @@ class ViiPostgresConnection: ViiConnection {
         }
     }
     
-    private func getBaseKeyQuery() -> String {
-        return """
-            SELECT kcu.column_name as "columnName",
-                   c.udt_name as "dataType",
-                   '%@' as constraint,
-                   c.is_nullable::BOOLEAN as "isNullable"
-            FROM information_schema.table_constraints tc
-            JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
-            JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema
-            AND tc.table_name = c.table_name AND ccu.column_name = c.column_name
-            JOIN information_schema.key_column_usage AS kcu
-            ON tc.constraint_name = kcu.constraint_name
-            WHERE constraint_type = '%@' and tc.table_name = '%@';
-        """
-    }
-    
     func getPrimaryKey(table: Table) -> EventLoopFuture<DatabaseKey?> {
-        let base = String(format: self.getBaseKeyQuery(), "primary", "PRIMARY KEY", table.tableName)
-        let sql = SQLQueryString(stringLiteral: base)
+        let sql = """
+                SELECT  kcu.column_name as "columnName",
+                        c.udt_name as "dataType",
+                        'primary' as constraint,
+                        c.is_nullable::BOOLEAN as "isNullable"
+                FROM information_schema.table_constraints tc
+                JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
+                JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema
+                AND tc.table_name = c.table_name AND ccu.column_name = c.column_name
+                JOIN information_schema.key_column_usage AS kcu
+                ON tc.constraint_name = kcu.constraint_name
+                WHERE constraint_type = 'PRIMARY KEY' and tc.table_name = '\(table.tableName)';
+                """
         return self.connection.withConnection { db in
             return db.sql()
-                     .raw(sql)
+                     .raw(SQLQueryString(stringLiteral: sql))
                      .first(decoding: DatabaseKey.self)
         }
     }
     
     func getForeignKeys(table: Table) -> EventLoopFuture<[DatabaseKey]> {
-        let base = String(format: self.getBaseKeyQuery(), "foreign", "FOREIGN KEY", table.tableName)
-        let sql = SQLQueryString(stringLiteral: base)
+        // duplicated as String(format:...) not available on Linux
+        let sql = """
+        SELECT  kcu.column_name as "columnName",
+                c.udt_name as "dataType",
+                'foreign' as constraint,
+                c.is_nullable::BOOLEAN as "isNullable"
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
+        JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema
+        AND tc.table_name = c.table_name AND ccu.column_name = c.column_name
+        JOIN information_schema.key_column_usage AS kcu
+        ON tc.constraint_name = kcu.constraint_name
+        WHERE constraint_type = 'FOREIGN KEY' and tc.table_name = '\(table.tableName)';
+        """
         return self.connection.withConnection { db in
             return db.sql()
-                     .raw(sql)
+                     .raw(SQLQueryString(stringLiteral: sql))
                      .all(decoding: DatabaseKey.self)
         }
     }

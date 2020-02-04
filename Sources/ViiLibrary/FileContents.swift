@@ -1,41 +1,64 @@
 public struct FileContents {
     
     var imports: [String]
-    var originalName: String
+    var originalTableName: String
     var columns: [Column]
     var primaryKey: DatabaseKey?
     var foreignKeys: [DatabaseKey]
     
     /// computed
     var className: String {
-        return self.originalName.format()
+        return self.originalTableName.format()
     }
     var classDeclaration: String {
-        return "\nfinal class \(className): Model {\n"
+        return "final class \(className): Model {"
     }
     var schema: String {
-        return "\tstatic let schema = \"\(originalName)\"\n"
+        return "static let schema = \"\(originalTableName)\""
+    }
+    
+    var schemaFormatted: String {
+        return "\n\t\(schema)\n"
     }
     var endDeclaration: String {
         return "\n}"
     }
     
-    var primaryKeyDeclaration: String? {
+    var primaryKeyWrapper: String? {
         if let pk = self.primaryKey {
-            let sql = SQLType.init(pk.dataType)
-            let colName = pk.columnName.format().lowerCasedFirstLetter()
-            return "\n\t@ID(key: \"\(pk.columnName)\")\n\tvar \(colName): \(sql.swiftType)"
+            return "@ID(key: \"\(pk.columnName)\")"
         }
         return nil
+    }
+    
+    var primaryKeyVariable: String? {
+        if let pk = self.primaryKey {
+            let colName = pk.columnName.format().lowerCasedFirstLetter()
+            let sql = SQLType.init(pk.dataType)
+            return "\n\tvar \(colName): \(sql.swiftType)?"
+        }
+        return nil
+    }
+    
+    var primaryKeyDeclaration: String {
+        if (self.primaryKey != nil) {
+            return "\n\t" + (self.primaryKeyWrapper ?? "") + (self.primaryKeyVariable ?? "")
+        }
+        return ""
+    }
+    
+    var primaryKeyDeclarationFormatted: String {
+        return "\n\t\(primaryKeyDeclaration)"
     }
     
     var foreignKeyDeclarations: String? {
         if self.foreignKeys.isEmpty { return nil }
         return self.foreignKeys.map { fk in
             let sql = SQLType.init(fk.dataType)
-            let isOptional = fk.isNullable ? "\n\t@OptionalParent(key: \(fk.columnName))" : "\n\t@Parent(key: \"\(fk.columnName)\")"
-            let property = "\n\tvar \(fk.columnName): \(sql.swiftType)"
-            return "\n\t" + isOptional + property + "\n"
+            let isOptional = fk.isNullable ? "@OptionalParent(key: \"\(fk.columnName)\")" : "@Parent(key: \"\(fk.columnName)\")"
+            let property = "\n\tvar \(fk.columnName.format().lowerCasedFirstLetter()): \(sql.swiftType)"
+            let ending = fk.isNullable ? "?\n" : "\n"
+            return "\n\t" + isOptional + property + ending
         }.joined()
     }
     
@@ -47,13 +70,13 @@ public struct FileContents {
     var columnDeclaration: String {
         return self.trimmedColumns.map { col in
             let swiftType = SQLType.init(col.dataType)
-            return "\n\t@Field(key: \"\(col.columnName)\")\n\tvar \(col.columnName.format().lowerCasedFirstLetter()): \(swiftType.swiftType)\n"
+            return "@Field(key: \"\(col.columnName)\")\n\tvar \(col.columnName.format().lowerCasedFirstLetter()): \(swiftType.swiftType)"
         }.joined()
     }
     
-    init(imports: [String], originalName: String, columns: [Column], primaryKey: DatabaseKey?, foreignKeys: [DatabaseKey]) {
+    init(imports: [String], originalTableName: String, columns: [Column], primaryKey: DatabaseKey?, foreignKeys: [DatabaseKey]) {
         self.imports = imports
-        self.originalName = originalName
+        self.originalTableName = originalTableName
         self.columns = columns
         self.primaryKey = primaryKey
         self.foreignKeys = foreignKeys
@@ -62,10 +85,8 @@ public struct FileContents {
     public func getFileContents() -> String {
         return imports.joined(separator: "")
                 + classDeclaration
-                + schema
-                + (primaryKeyDeclaration ?? "")
-                + (foreignKeyDeclarations ?? "")
-                + columnDeclaration
+                + schemaFormatted
+                + primaryKeyDeclaration
                 + endDeclaration
     }
 }
