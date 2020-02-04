@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/vapor/async-kit.git",
         "state": {
           "branch": null,
-          "revision": "cb8e6ee62dc6684a95132f8d46511956e78ee0f1",
-          "version": "1.0.0-beta.2"
+          "revision": "8e9d41f31848809732661563b334c1bb1c93cf1a",
+          "version": "1.0.0-beta.2.2"
         }
       },
       {

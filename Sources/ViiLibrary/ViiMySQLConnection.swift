@@ -41,21 +41,45 @@ class ViiMySQLConnection: ViiConnection {
         }
     }
 
-    func getPrimaryKey(table: Table) -> EventLoopFuture<DatabaseKey?> {
+    func getPrimaryKey(table: Table) -> EventLoopFuture<Column?> {
         return self.connection.withConnection { db in
         return db.sql()
                  .raw("""
+                 SELECT kcu.column_name as columnName,
+                        c.DATA_TYPE as dataType,
+                        CASE
+                            WHEN c.IS_NULLABLE = 'NO' THEN FALSE
+                            ELSE TRUE
+                        END AS isNullable
+                 FROM information_schema.columns c
+                    ON c.table_name = kcu.table_name
+                 WHERE kcu.table_schema = schema()
+                 AND constraint_name = 'PRIMARY'
+                 AND kcu.table_name = '\(table.tableName)'
+                 AND kcu.column_name = c.column_name
                  """)
-                .first(decoding: DatabaseKey.self)
+                .first(decoding: Column.self)
         }
     }
     
-    func getForeignKeys(table: Table) -> EventLoopFuture<[DatabaseKey]> {
+    func getForeignKeys(table: Table) -> EventLoopFuture<[Column]> {
         return self.connection.withConnection { db in
         return db.sql()
                  .raw("""
+                 SELECT kcu.column_name as columnName,
+                        c.DATA_TYPE as dataType,
+                        CASE
+                            WHEN c.IS_NULLABLE = 'NO' THEN FALSE
+                            ELSE TRUE
+                        END AS isNullable
+                 FROM information_schema.columns c
+                    ON c.table_name = kcu.table_name
+                 WHERE kcu.table_schema = schema()
+                 AND constraint_name = 'FOREIGN'
+                 AND kcu.table_name = '\(table.tableName)'
+                 AND kcu.column_name = c.column_name
                  """)
-                .all(decoding: DatabaseKey.self)
+                .all(decoding: Column.self)
         }
     }
 }

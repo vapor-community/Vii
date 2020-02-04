@@ -9,13 +9,14 @@ final class ViiTests: XCTestCase {
     let columns = [
         Column(columnName: "user_id", dataType: "uuid", isNullable: true),
         Column(columnName: "category_id", dataType: "uuid", isNullable: false),
-        Column(columnName: "c", dataType: "varchar", isNullable: true),
-        Column(columnName: "d", dataType: "_int2", isNullable: false),
-        Column(columnName: "e", dataType: "bool", isNullable: true)
+        Column(columnName: "post_id", dataType: "int4", isNullable: true),
+        Column(columnName: "group_id", dataType: "int4", isNullable: false),
+        Column(columnName: "flags", dataType: "_bool", isNullable: true),
+        Column(columnName: "Created_At", dataType: "datetime", isNullable: true)
     ]
-    let primaryKey = DatabaseKey(columnName: "user_id", dataType: "uuid", constraint: DatabaseKey.KeyType.primary, isNullable: true)
-    let foreignKeys = [DatabaseKey(columnName: "category_id", dataType: "uuid", constraint: DatabaseKey.KeyType.foreign, isNullable: false)]
-    let optionalForeignKeys = [DatabaseKey(columnName: "category_id", dataType: "uuid", constraint: DatabaseKey.KeyType.foreign, isNullable: true)]
+    let primaryKey = Column(columnName: "user_id", dataType: "uuid", isNullable: true)
+    let foreignKeys = [Column(columnName: "category_id", dataType: "uuid", isNullable: false)]
+    let optionalForeignKeys = [Column(columnName: "group_id", dataType: "int4", isNullable: true)]
         
     func testPascalCaseTable() throws {
         let PascalCaseTable = Table(tableName: "UserProfile")
@@ -58,41 +59,66 @@ final class ViiTests: XCTestCase {
     }
     
     func testClassDeclaration() throws {
-        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
+        let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
         let declaration = contents.classDeclaration
         let expected = "final class User: Model {"
         XCTAssertEqual(declaration, expected)
     }
     
     func testSchemaDeclaration() throws {
-        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
+        let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
         let schema = contents.schema
         let expected = "static let schema = \"\(table.tableName)\""
         XCTAssertEqual(schema, expected)
     }
     
     func testPrimaryKeyWrapper() throws {
-        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
+        let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
         let pk = contents.primaryKeyWrapper
         XCTAssertEqual(pk, "@ID(key: \"user_id\")")
     }
     
-    func testPrimaryKeyVariable() throws {
-        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
-        let pk = contents.primaryKeyVariable
-        XCTAssertEqual(pk, "\n\tvar userId: UUID?")
+    func testPrimaryKeyProperty() throws {
+        let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
+        let pk = contents.primaryKeyProperty!
+        XCTAssertEqual(pk, "var userId: UUID?")
     }
     
     func testForeignKey() throws {
-        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
+        let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
         let fk = contents.foreignKeyDeclarations!
-        XCTAssertEqual(fk, "\n\t@Parent(key: \"category_id\")\n\tvar categoryId: UUID\n")
+        XCTAssertEqual(fk, "@Parent(key: \"category_id\")\n\tvar categoryId: UUID")
     }
     
     func testOptionalForeignKey() throws {
-        let contents = FileContents(imports: [], originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: optionalForeignKeys)
+        let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: optionalForeignKeys)
         let fk = contents.foreignKeyDeclarations!
-        XCTAssertEqual(fk, "\n\t@OptionalParent(key: \"category_id\")\n\tvar categoryId: UUID?\n")
+        XCTAssertEqual(fk, "@OptionalParent(key: \"group_id\")\n\tvar groupId: Int?")
+    }
+
+    func testImports() throws {
+        let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: optionalForeignKeys)
+        let imports = contents.imports
+        XCTAssertEqual(imports, "import Foundation\n")
+    }
+
+    func testTrimmedColumns() throws {
+        let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
+        let trimmedColumns = contents.trimmedColumns
+        let expected = [columns[2],columns[3],columns[4],columns[5]]
+        XCTAssertEqual(trimmedColumns, expected)
+    }
+
+    func testColumn() throws {
+        let contents = FileContents(originalTableName: table.tableName, columns: [columns[3]], primaryKey: nil, foreignKeys: [])
+        let declaration = contents.columnProperties
+        XCTAssertEqual(declaration, "@Field(key: \"group_id\")\n\tvar groupId: Int")
+    }
+
+    func testArrayProps() throws {
+        let contents = FileContents(originalTableName: table.tableName, columns: [columns[4]], primaryKey: nil, foreignKeys: [])
+        let declaration = contents.columnProperties
+        XCTAssertEqual(declaration, "@Field(key: \"flags\")\n\tvar flags: [Bool]?")
     }
 
     static var allTests = [
@@ -105,8 +131,12 @@ final class ViiTests: XCTestCase {
         ("testClassDeclaration", testClassDeclaration),
         ("testSchemaDeclaration", testSchemaDeclaration),
         ("testPrimaryKeyWrapper", testPrimaryKeyWrapper),
-        ("testPrimaryKeyVariable", testPrimaryKeyVariable),
+        ("testPrimaryKeyProperty", testPrimaryKeyProperty),
         ("testForeignKey", testForeignKey),
-        ("testOptionalForeignKey", testOptionalForeignKey)
+        ("testOptionalForeignKey", testOptionalForeignKey),
+        ("testImports", testImports),
+        ("testTrimmedColumns", testTrimmedColumns),
+        ("testColumn", testColumn),
+        ("testArrayProps", testArrayProps)
     ]
 }

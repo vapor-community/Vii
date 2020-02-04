@@ -24,10 +24,11 @@ final class ViiCommand: Command {
         defer { connection.close() }
         let tables = try connection.getTables().wait()
         let contents: [FileContents] = try tables.map { table in
-            let columns = try connection.getColumns(table: table).wait()
-            return try GenerateFile.generateFileContents(table: table, columns: columns, on: connection)
+            let file = try GenerateFile.generateFileContents(table: table, connection: connection)
+            print(file)
+            return file
         }
-        print(contents[8].getFileContents())
+        
         
     }
     
@@ -52,7 +53,7 @@ final class ViiCommand: Command {
     /// creates a `Credential` struct for connection to DB
     /// - Parameter console: `Console`
     func getCredentials(console: Console) throws -> Credential {
-        return Credential(port: 5432, host: "127.0.0.1", username: "vapor", password: "password", database: "sportsyv3")
+        return Credential(port: 5432, host: "psql", username: "vapor", password: "password", database: "vapor")
         console.info("We're going to need to use your DB info, please answer the following:", newLine: true)
         let host = console.ask("Your database host eg (127.0.0.1)".consoleText(color: .brightYellow))
         let portAsString = console.ask("What port is your database running on?".consoleText(color: .brightYellow))
@@ -69,7 +70,7 @@ final class ViiCommand: Command {
     private let welcome: [String] = [
        " __      ___ _    _____          _         _____                           _                ",
        " \\ \\    / (_|_)  / ____|        | |       / ____|                         | |               ",
-       "  \\ \\  / / _ _  | |     ___   __| | ___  | |  __  ___ _ __   ___ _ __ __ _| |_ ___  _ __    ",
+       "  \\ \\  / / _ _  | |     ___   __| | ___  | |  __  K__ _ __   ___ _ __ __ _| |_ ___  _ __    ",
        "   \\ \\/ / | | | | |    / _ \\ / _` |/ _ \\ | | |_ |/ _ \\ '_ \\ / _ \\ '__/ _` | __/ _ \\| '__|  ",
        "    \\  /  | | | | |___| (_) | (_| |  __/ | |__| |  __/ | | |  __/ | | (_| | || (_) | |     ",
        "     \\/   |_|_|  \\_____\\___/ \\__,_|\\___|  \\_____|\\___|_| |_|\\___|_|  \\__,_|\\__\\___/|_|     ",
