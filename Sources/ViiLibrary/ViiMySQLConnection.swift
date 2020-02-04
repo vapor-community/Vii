@@ -26,16 +26,22 @@ class ViiMySQLConnection: ViiConnection {
         return self.connection.withConnection { db in
             return db.sql()
                      .raw("""
-                        SELECT COLUMN_NAME as columnName,
-                               DATA_TYPE as dataType,
-                               CASE
-                                  WHEN IS_NULLABLE = 'NO' THEN FALSE
-                                  ELSE TRUE
-                               END AS isNullable
-                        FROM information_schema.columns
-                        WHERE table_schema = \(bind: self.schema)
+                        SELECT
+                            COLUMN_NAME AS columnName,
+                            DATA_TYPE AS dataType,
+                            CASE WHEN IS_NULLABLE = 'NO' THEN
+                                FALSE
+                            ELSE
+                                TRUE
+                            END AS isNullable
+                        FROM
+                            information_schema.columns
+                        WHERE
+                            table_schema = \(bind: self.schema)
                         AND TABLE_NAME = \(bind: table.tableName)
-                        ORDER BY table_name,ordinal_position
+                        ORDER BY
+                            table_name,
+                            ordinal_position;
                     """)
                 .all(decoding: Column.self)
         }
@@ -45,18 +51,22 @@ class ViiMySQLConnection: ViiConnection {
         return self.connection.withConnection { db in
         return db.sql()
                  .raw("""
-                 SELECT kcu.column_name as columnName,
-                        c.DATA_TYPE as dataType,
-                        CASE
-                            WHEN c.IS_NULLABLE = 'NO' THEN FALSE
-                            ELSE TRUE
-                        END AS isNullable
-                 FROM information_schema.columns c
-                    ON c.table_name = kcu.table_name
-                 WHERE kcu.table_schema = schema()
-                 AND constraint_name = 'PRIMARY'
-                 AND kcu.table_name = '\(table.tableName)'
-                 AND kcu.column_name = c.column_name
+                 SELECT
+                     kcu.column_name AS columnName,
+                     c.DATA_TYPE AS dataType,
+                     CASE WHEN c.IS_NULLABLE = 'NO' THEN
+                         FALSE
+                     ELSE
+                         TRUE
+                     END AS isNullable
+                 FROM
+                     information_schema.KEY_COLUMN_USAGE kcu
+                     INNER JOIN information_schema.columns c ON c.table_name = kcu.table_name
+                 WHERE
+                     kcu.table_schema = schema()
+                     AND constraint_name = 'PRIMARY'
+                     AND kcu.table_name = '\(table.tableName)'
+                     AND kcu.column_name = c.column_name;
                  """)
                 .first(decoding: Column.self)
         }
@@ -66,18 +76,26 @@ class ViiMySQLConnection: ViiConnection {
         return self.connection.withConnection { db in
         return db.sql()
                  .raw("""
-                 SELECT kcu.column_name as columnName,
-                        c.DATA_TYPE as dataType,
-                        CASE
-                            WHEN c.IS_NULLABLE = 'NO' THEN FALSE
-                            ELSE TRUE
-                        END AS isNullable
-                 FROM information_schema.columns c
-                    ON c.table_name = kcu.table_name
-                 WHERE kcu.table_schema = schema()
-                 AND constraint_name = 'FOREIGN'
-                 AND kcu.table_name = '\(table.tableName)'
-                 AND kcu.column_name = c.column_name
+                 SELECT
+                     c.COLUMN_NAME AS columnName,
+                     c.DATA_TYPE AS dataType,
+                     CASE WHEN IS_NULLABLE = 'NO' THEN
+                         FALSE
+                     ELSE
+                         TRUE
+                     END AS isNullable
+                 FROM
+                     information_schema.columns c
+                 WHERE
+                     EXISTS (
+                         SELECT
+                             1
+                         FROM
+                             information_schema.TABLE_CONSTRAINTS tcc
+                         WHERE
+                             tcc. `TABLE_NAME` = c. `TABLE_NAME`
+                             AND tcc.CONSTRAINT_TYPE = 'FOREIGN KEY')
+                    AND c.table_name = '\(table.tableName)'
                  """)
                 .all(decoding: Column.self)
         }

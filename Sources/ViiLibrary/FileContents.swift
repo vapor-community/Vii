@@ -18,7 +18,7 @@ public struct FileContents {
         for col in self.columns {
             let sqlType = SQLType(col.dataType)
             if SQLType.foundationRequired.contains(sqlType){
-                return "import Foundation\n"
+                return "import Foundation\n\n"
             }
         }
         return ""
@@ -79,14 +79,14 @@ public struct FileContents {
         return self.foreignKeys.map { fk in
             let propertyWrapper = self.getPropertyWrapper(column: fk, isPrimary: false, isForeign: true)
             let property = self.getPropertyDeclaration(column: fk)
-            return propertyWrapper + "\n\t" + property
+            return "\n\n\t" + propertyWrapper + "\n\t" + property
         }.joined()
     }
 
     /// gets formatted foreign key declaration
     var foreignKeyDeclarationsFormatted: String {
         if let fk = self.foreignKeyDeclarations {
-            return "\n\t" + fk
+            return "\t" + fk
         }
         return ""
     }
@@ -109,7 +109,7 @@ public struct FileContents {
         return self.trimmedColumns.map { col in
             let propertyWrapper = self.getPropertyWrapper(column: col, isPrimary: false, isForeign: false)
             let property = self.getPropertyDeclaration(column: col)
-            return propertyWrapper + "\n\t" + property
+            return "\n\t" + propertyWrapper + "\n\t" + property + "\n"
         }.joined()
     }
 
@@ -154,13 +154,13 @@ public struct FileContents {
         let initial = "\n\n\tinit("
         let args = self.columns.map { col in
             let dataType = SQLType(col.dataType).swiftType
-            let optionality = col.isNullable ? "?" : "" 
-            return col.columnName.format().lowerCasedFirstLetter() + ": \(dataType)\(optionality)"
+            let optionality = col.isNullable ? "?," : ","
+            return " \(col.columnName.format().lowerCasedFirstLetter()): \(dataType)\(optionality)"
         }.joined()
         let assignment = self.columns.map { col in
-            return "self." + col.columnName.format().lowerCasedFirstLetter() + " = " + col.columnName.format().lowerCasedFirstLetter()
+            return "\n\t\tself." + col.columnName.format().lowerCasedFirstLetter() + " = " + col.columnName.format().lowerCasedFirstLetter()
         }.joined()
-        return initial + args + ")\n" + assignment + "\n\t}"
+        return initial + args.dropLast() + "){" + assignment + "\n\t}"
     }
 
     /// returns the file contents

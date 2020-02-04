@@ -87,19 +87,19 @@ final class ViiTests: XCTestCase {
     func testForeignKey() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
         let fk = contents.foreignKeyDeclarations!
-        XCTAssertEqual(fk, "@Parent(key: \"category_id\")\n\tvar categoryId: UUID")
+        XCTAssertEqual(fk, "\n\n\t@Parent(key: \"category_id\")\n\tvar categoryId: UUID")
     }
     
     func testOptionalForeignKey() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: optionalForeignKeys)
         let fk = contents.foreignKeyDeclarations!
-        XCTAssertEqual(fk, "@OptionalParent(key: \"group_id\")\n\tvar groupId: Int?")
+        XCTAssertEqual(fk, "\n\n\t@OptionalParent(key: \"group_id\")\n\tvar groupId: Int?")
     }
 
     func testImports() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: optionalForeignKeys)
         let imports = contents.imports
-        XCTAssertEqual(imports, "import Foundation\n")
+        XCTAssertEqual(imports, "import Foundation\n\n")
     }
 
     func testTrimmedColumns() throws {
@@ -111,14 +111,14 @@ final class ViiTests: XCTestCase {
 
     func testColumn() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: [columns[3]], primaryKey: nil, foreignKeys: [])
-        let declaration = contents.columnProperties
-        XCTAssertEqual(declaration, "@Field(key: \"group_id\")\n\tvar groupId: Int")
+        let declaration = contents.columnProperties!
+        XCTAssertEqual(declaration, "\n\t@Field(key: \"group_id\")\n\tvar groupId: Int\n")
     }
 
     func testArrayProps() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: [columns[4]], primaryKey: nil, foreignKeys: [])
-        let declaration = contents.columnProperties
-        XCTAssertEqual(declaration, "@Field(key: \"flags\")\n\tvar flags: [Bool]?")
+        let declaration = contents.columnProperties!
+        XCTAssertEqual(declaration, "\n\t@Field(key: \"flags\")\n\tvar flags: [Bool]?\n")
     }
 
     static var allTests = [
