@@ -26,7 +26,7 @@ final class ViiCommand: Command {
         let contents: [FileContents] = try tables.map { table in
             return try GenerateFile.generateFileContents(table: table, connection: connection)
         }
-        print(contents[0].getFileContents())
+        print(contents[1].getFileContents())
     }
     
     struct Signature: CommandSignature {
@@ -67,7 +67,7 @@ final class ViiCommand: Command {
     private let welcome: [String] = [
        " __      ___ _    _____          _         _____                           _                ",
        " \\ \\    / (_|_)  / ____|        | |       / ____|                         | |               ",
-       "  \\ \\  / / _ _  | |     ___   __| | ___  | |  __  K__ _ __   ___ _ __ __ _| |_ ___  _ __    ",
+       "  \\ \\  / / _ _  | |     ___   __| | ___  | |  __  __ _ __   ___ _ __ __ _| |_ ___  _ __    ",
        "   \\ \\/ / | | | | |    / _ \\ / _` |/ _ \\ | | |_ |/ _ \\ '_ \\ / _ \\ '__/ _` | __/ _ \\| '__|  ",
        "    \\  /  | | | | |___| (_) | (_| |  __/ | |__| |  __/ | | |  __/ | | (_| | || (_) | |     ",
        "     \\/   |_|_|  \\_____\\___/ \\__,_|\\___|  \\_____|\\___|_| |_|\\___|_|  \\__,_|\\__\\___/|_|     ",
