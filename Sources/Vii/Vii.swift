@@ -24,12 +24,9 @@ final class ViiCommand: Command {
         defer { connection.close() }
         let tables = try connection.getTables().wait()
         let contents: [FileContents] = try tables.map { table in
-            let file = try GenerateFile.generateFileContents(table: table, connection: connection)
-            print(file)
-            return file
+            return try GenerateFile.generateFileContents(table: table, connection: connection)
         }
-        
-        
+        print(contents[0].getFileContents())
     }
     
     struct Signature: CommandSignature {
@@ -53,7 +50,7 @@ final class ViiCommand: Command {
     /// creates a `Credential` struct for connection to DB
     /// - Parameter console: `Console`
     func getCredentials(console: Console) throws -> Credential {
-        return Credential(port: 5432, host: "psql", username: "vapor", password: "password", database: "vapor")
+        return Credential(port: 3306, host: "127.0.0.1", username: "vapor", password: "password", database: "vapor")
         console.info("We're going to need to use your DB info, please answer the following:", newLine: true)
         let host = console.ask("Your database host eg (127.0.0.1)".consoleText(color: .brightYellow))
         let portAsString = console.ask("What port is your database running on?".consoleText(color: .brightYellow))
