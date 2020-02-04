@@ -1,93 +1,178 @@
 public struct FileContents {
     
-    var imports: [String]
     var originalTableName: String
     var columns: [Column]
-    var primaryKey: DatabaseKey?
-    var foreignKeys: [DatabaseKey]
-    
-    /// computed
-    var className: String {
-        return self.originalTableName.format()
-    }
-    var classDeclaration: String {
-        return "final class \(className): Model {"
-    }
-    var schema: String {
-        return "static let schema = \"\(originalTableName)\""
-    }
-    
-    var schemaFormatted: String {
-        return "\n\t\(schema)\n"
-    }
-    var endDeclaration: String {
-        return "\n}"
-    }
-    
-    var primaryKeyWrapper: String? {
-        if let pk = self.primaryKey {
-            return "@ID(key: \"\(pk.columnName)\")"
-        }
-        return nil
-    }
-    
-    var primaryKeyVariable: String? {
-        if let pk = self.primaryKey {
-            let colName = pk.columnName.format().lowerCasedFirstLetter()
-            let sql = SQLType.init(pk.dataType)
-            return "\n\tvar \(colName): \(sql.swiftType)?"
-        }
-        return nil
-    }
-    
-    var primaryKeyDeclaration: String {
-        if (self.primaryKey != nil) {
-            return "\n\t" + (self.primaryKeyWrapper ?? "") + (self.primaryKeyVariable ?? "")
-        }
-        return ""
-    }
-    
-    var primaryKeyDeclarationFormatted: String {
-        return "\n\t\(primaryKeyDeclaration)"
-    }
-    
-    var foreignKeyDeclarations: String? {
-        if self.foreignKeys.isEmpty { return nil }
-        return self.foreignKeys.map { fk in
-            let sql = SQLType.init(fk.dataType)
-            let isOptional = fk.isNullable ? "@OptionalParent(key: \"\(fk.columnName)\")" : "@Parent(key: \"\(fk.columnName)\")"
-            let property = "\n\tvar \(fk.columnName.format().lowerCasedFirstLetter()): \(sql.swiftType)"
-            let ending = fk.isNullable ? "?\n" : "\n"
-            return "\n\t" + isOptional + property + ending
-        }.joined()
-    }
-    
-    /// removes columns used as keys
-    var trimmedColumns: [Column] {
-        return self.columns.filter( { !$0.columnName.contains("id") })
-    }
-    
-    var columnDeclaration: String {
-        return self.trimmedColumns.map { col in
-            let swiftType = SQLType.init(col.dataType)
-            return "@Field(key: \"\(col.columnName)\")\n\tvar \(col.columnName.format().lowerCasedFirstLetter()): \(swiftType.swiftType)"
-        }.joined()
-    }
-    
-    init(imports: [String], originalTableName: String, columns: [Column], primaryKey: DatabaseKey?, foreignKeys: [DatabaseKey]) {
-        self.imports = imports
+    var primaryKey: Column?
+    var foreignKeys: [Column]
+
+    init(originalTableName: String, columns: [Column], primaryKey: Column?, foreignKeys: [Column]) {
         self.originalTableName = originalTableName
         self.columns = columns
         self.primaryKey = primaryKey
         self.foreignKeys = foreignKeys
     }
     
+    /// computed properties
+    /// returns list of any imports
+    var imports: String {
+        for col in self.columns {
+            let sqlType = SQLType(col.dataType)
+            if SQLType.foundationRequired.contains(sqlType){
+                return "import Foundation\n"
+            }
+        }
+        return ""
+    }
+    /// gets swift naming convention ClassName
+    var className: String {
+        return self.originalTableName.format()
+    }
+    /// gets class name declaration
+    var classDeclaration: String {
+        return "final class \(self.className): Model {"
+    }
+    /// gets the schema declaration
+    var schema: String {
+        return "static let schema = \"\(self.originalTableName)\""
+    }
+    /// gets the fromatted schema
+    var schemaFormatted: String {
+        return "\n\t\(self.schema)\n"
+    }
+    /// gets closing declaration
+    var endDeclaration: String {
+        return "\n}"
+    }
+
+    /// gets property wrapper for primary key    
+    var primaryKeyWrapper: String? {
+        if let pk = self.primaryKey {
+            return self.getPropertyWrapper(column: pk, isPrimary: true, isForeign: false)
+        }
+        return nil
+    }
+   
+   /// gets property declaration
+    var primaryKeyProperty: String? {
+        if let pk = self.primaryKey {
+            return self.getPropertyDeclaration(column: pk)
+        }
+        return nil
+    }
+    
+    /// gets primary key declaration
+    var primaryKeyDeclaration: String {
+        if (self.primaryKey != nil) {
+            return (self.primaryKeyWrapper ?? "") + "\n\t" + (self.primaryKeyProperty ?? "")
+        }
+        return ""
+    }
+    
+    /// gets formatted primary key declaration
+    var primaryKeyDeclarationFormatted: String {
+        return "\n\t\(self.primaryKeyDeclaration)"
+    }
+    
+    /// gets declarations for forign keys
+    var foreignKeyDeclarations: String? {
+        if self.foreignKeys.isEmpty { return nil }
+        return self.foreignKeys.map { fk in
+            let propertyWrapper = self.getPropertyWrapper(column: fk, isPrimary: false, isForeign: true)
+            let property = self.getPropertyDeclaration(column: fk)
+            return propertyWrapper + "\n\t" + property
+        }.joined()
+    }
+
+    /// gets formatted foreign key declaration
+    var foreignKeyDeclarationsFormatted: String {
+        if let fk = self.foreignKeyDeclarations {
+            return "\n\t" + fk
+        }
+        return ""
+    }
+    
+    /// removes columns used as keys
+    var trimmedColumns: [Column] {
+        var processedColumns:[Column] = []
+        if let pk = self.primaryKey {
+            processedColumns.append(pk)
+        }
+        if !self.foreignKeys.isEmpty {
+            processedColumns += self.foreignKeys
+        }
+        return self.columns.filter { !processedColumns.contains($0) }
+    }
+    
+    /// gets declarations for remaining columns
+    var columnProperties: String? {
+        if self.trimmedColumns.isEmpty { return nil }
+        return self.trimmedColumns.map { col in
+            let propertyWrapper = self.getPropertyWrapper(column: col, isPrimary: false, isForeign: false)
+            let property = self.getPropertyDeclaration(column: col)
+            return propertyWrapper + "\n\t" + property
+        }.joined()
+    }
+
+    /// gets formatted column declaration
+    var columnDeclarationsFormatted: String {
+        if let columnDeclarations = self.columnProperties {
+            return "\n\t" + columnDeclarations
+        }
+        return ""
+    }
+    
+    /// returns propertyWrapper for column
+    func getPropertyWrapper(column: Column, isPrimary: Bool, isForeign: Bool) -> String {
+        if isPrimary {
+            return "@ID(key: \"\(column.columnName)\")"
+        }
+        if isForeign {
+            if column.isNullable {
+                return "@OptionalParent(key: \"\(column.columnName)\")"
+            }
+            return "@Parent(key: \"\(column.columnName)\")"
+        }
+        if SQLType.timestampable.contains(SQLType(column.dataType)){
+            return "@Timestamp(key: \"\(column.columnName)\")"
+        }
+        return "@Field(key: \"\(column.columnName)\")"
+    }
+
+    /// returns property declartion and optionality
+    func getPropertyDeclaration(column: Column) -> String {
+        let dataType = SQLType(column.dataType).swiftType
+        let isNullable = column.isNullable ? "?" : ""
+        return "var \(column.columnName.format().lowerCasedFirstLetter()): \(dataType)\(isNullable)"
+    }
+
+    func getInitializer() -> String {
+        return "\n\n\tinit() {}"
+    }
+
+    /// gets the full initializer
+    func getFullInitializer() -> String {
+        let initial = "\n\n\tinit("
+        let args = self.columns.map { col in
+            let dataType = SQLType(col.dataType).swiftType
+            let optionality = col.isNullable ? "?" : "" 
+            return col.columnName.format().lowerCasedFirstLetter() + ": \(dataType)\(optionality)"
+        }.joined()
+        let assignment = self.columns.map { col in
+            return "self." + col.columnName.format().lowerCasedFirstLetter() + " = " + col.columnName.format().lowerCasedFirstLetter()
+        }.joined()
+        return initial + args + ")\n" + assignment + "\n\t}"
+    }
+
+    /// returns the file contents
     public func getFileContents() -> String {
-        return imports.joined(separator: "")
-                + classDeclaration
-                + schemaFormatted
-                + primaryKeyDeclaration
-                + endDeclaration
+        return imports + classDeclaration
+                       + schemaFormatted
+                       + primaryKeyDeclarationFormatted
+                       + foreignKeyDeclarationsFormatted
+                       + columnDeclarationsFormatted
+                       + getInitializer()
+                       + getFullInitializer()
+                       + endDeclaration
     }
 }
 

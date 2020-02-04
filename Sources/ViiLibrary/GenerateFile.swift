@@ -1,30 +1,11 @@
 public struct GenerateFile {
-    
-    /// gets any imports from the column
-    /// - Parameter column: SQLType column
-    private static func getImportForColumn(column: SQLType) -> String? {
-        if SQLType.foundationArray.contains(column) {
-            return "import Foundation\n"
-        }
-        return nil
-    }
-    
-    private static func getColumnAndWrappers() -> String {
-        return ""
-    }
-    
-    public static func generateFileContents(table: Table, columns: [Column], on: ViiConnection) throws -> FileContents {
-        var fileImport: [String] = []
-        for col in columns {
-            let sqlToSwiftType = SQLType(col.dataType)
-            if let importFromColumn = self.getImportForColumn(column: sqlToSwiftType) {
-                fileImport.append(importFromColumn)
-            }
-        }
-        let uniqueImports = Array(Set(fileImport))
-        let primaryKey = try on.getPrimaryKey(table: table).wait()
-        let foreignKeys = try on.getForeignKeys(table: table).wait()
+      
+    public static func generateFileContents(table: Table, connection: ViiConnection) throws -> FileContents {
+ 
+        let columns = try connection.getColumns(table: table).wait()
+        let primaryKey = try connection.getPrimaryKey(table: table).wait()
+        let foreignKeys = try connection.getForeignKeys(table: table).wait()
 
-        return FileContents(imports: uniqueImports, originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
+        return FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
     }
 }

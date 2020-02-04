@@ -40,11 +40,10 @@ class ViiPostgresConnection: ViiConnection {
         }
     }
     
-    func getPrimaryKey(table: Table) -> EventLoopFuture<DatabaseKey?> {
+    func getPrimaryKey(table: Table) -> EventLoopFuture<Column?> {
         let sql = """
                 SELECT  kcu.column_name as "columnName",
                         c.udt_name as "dataType",
-                        'primary' as constraint,
                         c.is_nullable::BOOLEAN as "isNullable"
                 FROM information_schema.table_constraints tc
                 JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
@@ -57,16 +56,15 @@ class ViiPostgresConnection: ViiConnection {
         return self.connection.withConnection { db in
             return db.sql()
                      .raw(SQLQueryString(stringLiteral: sql))
-                     .first(decoding: DatabaseKey.self)
+                     .first(decoding: Column.self)
         }
     }
     
-    func getForeignKeys(table: Table) -> EventLoopFuture<[DatabaseKey]> {
+    func getForeignKeys(table: Table) -> EventLoopFuture<[Column]> {
         // duplicated as String(format:...) not available on Linux
         let sql = """
         SELECT  kcu.column_name as "columnName",
                 c.udt_name as "dataType",
-                'foreign' as constraint,
                 c.is_nullable::BOOLEAN as "isNullable"
         FROM information_schema.table_constraints tc
         JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
@@ -79,7 +77,7 @@ class ViiPostgresConnection: ViiConnection {
         return self.connection.withConnection { db in
             return db.sql()
                      .raw(SQLQueryString(stringLiteral: sql))
-                     .all(decoding: DatabaseKey.self)
+                     .all(decoding: Column.self)
         }
     }
 }

@@ -9,7 +9,7 @@ public protocol ViiConnection: AnyObject {
     /// gets columns and types for  a table
     func getColumns(table: Table) -> EventLoopFuture<[Column]>
     /// get primary keys
-    func getPrimaryKey(table: Table) -> EventLoopFuture<DatabaseKey?>
+    func getPrimaryKey(table: Table) -> EventLoopFuture<Column?>
     /// get foreign keys
-    func getForeignKeys(table: Table) -> EventLoopFuture<[DatabaseKey]>
+    func getForeignKeys(table: Table) -> EventLoopFuture<[Column]>
 }

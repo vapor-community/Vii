@@ -118,15 +118,21 @@ struct SQLType: Equatable {
         return .init("varchar")
     }
     static var xml: SQLType {
-        return .init("varchar")
+        return .init("xml")
     }
     static var year: SQLType {
         return .init("year")
     }
     
     // Array Types
+    static var _bit: SQLType {
+        return .init("_bit")
+    }
     static var _bool: SQLType {
         return .init("_bool")
+    }
+    static var _bpchar: SQLType {
+        return .init("_bpchar")
     }
     static var _bytea: SQLType {
         return .init("_bytea")
@@ -149,42 +155,60 @@ struct SQLType: Equatable {
     static var _int8: SQLType {
         return .init("_int8")
     }
+    static var _json: SQLType {
+        return .init("_json")
+    }
+    static var _jsonb: SQLType {
+        return .init("_jsonb")
+    }
+    static var _money: SQLType {
+        return .init("_money")
+    }
+    static var _numeric: SQLType {
+        return .init("_numeric")
+    }
     static var _text: SQLType {
         return .init("_text")
     }
     static var _uuid: SQLType {
         return .init("_uuid")
     }
-    
+    static var _varbit: SQLType {
+        return .init("_varbit")
+    }
+    static var _xml: SQLType {
+        return .init("_xml")
+    }
+
     var swiftType: String {
         switch self {
-        case .bit: return "XXX"
+        case .bit, .bpchar, .bytea, .varbit: return "Data"
         case .bool, .boolean: return "Bool"
-        case .box, .point, .polygon: return "Postgres Geometric Unsupported"
-        case .bpchar, .char, .mediumText, .longText, .text, .tinyText, .varchar: return "String"
-        case .bytea: return "XXX"
+        case .box, .point, .polygon: return "Postgres geometric types are unsupported"
+        case .char, .mediumText, .longText, .text, .tinyText, .varchar: return "String"
         case .dec, .decimal, .double, .money, .numeric: return "Double"
-        case .date, .dateTime, .timestamp, .timestampz: return "Date"
+        case .date, .dateTime, .time, .timestamp, .timestampz: return "Date"
         case .float4, .float8: return "Float"
-        case .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt, .bigInt: return "Int"
+        case .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt, .bigInt, .year: return "Int"
         case .json: return "JSON"
         case .jsonb: return "JSON"
-        case .time: return "XXX"
         case .uuid: return "UUID"
-        case .varbit: return "XXX"
-        case .xml: return "XXX"
-        case .year: return "XXX"
+        case .xml: return "XML"
         // array switch
         case ._bool: return "[Bool]"
-        case ._bytea: return "[bytea]"
+        case ._bit, ._bpchar, ._bytea, ._varbit: return "[Data]"
         case ._char: return "[String]"
         case ._float4, ._float8: return "[Float]"
         case ._int2, ._int4, ._int8: return "[Int]"
+        case ._json, ._jsonb: return "[JSON]"
+        case ._money, ._numeric: return "[Double]"
         case ._text: return "[String]"
         case ._uuid: return "[UUID]"
-        default: return "Couldn't map type"
+        case ._xml: return "[XML]"
+        default: return " // Couldn't map type - this type may be missing, raise a GH issue to help improve this"
         }
     }
     
-    static let foundationArray: [SQLType] = [.uuid, ._uuid, .json, .jsonb]
+    static let foundationRequired: [SQLType] = [.uuid, ._uuid, .json, .jsonb, .xml, .date, .dateTime, .time, .timestamp, .timestampz, .bit, .bytea, .varbit]
+    static let timestampable: [SQLType] = [.date, .dateTime, .time, .timestamp, .timestampz]
 }
