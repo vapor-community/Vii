@@ -78,7 +78,7 @@ public struct FileContents {
         if self.foreignKeys.isEmpty { return nil }
         return self.foreignKeys.map { fk in
             let propertyWrapper = self.getPropertyWrapper(column: fk, isPrimary: false, isForeign: true)
-            let property = self.getPropertyDeclaration(column: fk)
+            let property = self.getForeignKeyPropertyDeclaration(column: fk)
             return "\n\n\t" + propertyWrapper + "\n\t" + property
         }.joined()
     }
@@ -143,6 +143,13 @@ public struct FileContents {
         let dataType = SQLType(column.dataType).swiftType
         let isNullable = column.isNullable ? "?" : ""
         return "var \(column.columnName.format().lowerCasedFirstLetter()): \(dataType)\(isNullable)"
+    }
+    
+    func getForeignKeyPropertyDeclaration(column: Column) -> String {
+        let isNullable = column.isNullable ? "?" : ""
+        let formattedVar = column.columnName.format().lowerCasedFirstLetter()
+        let tableReference = column.constrainedTable ?? ""
+        return "var \(formattedVar): \(tableReference)\(isNullable)"
     }
 
     func getInitializer() -> String {

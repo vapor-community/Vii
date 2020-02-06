@@ -7,16 +7,16 @@ final class ViiTests: XCTestCase {
     let secondaryOutput = "Userprofile"
     let table = Table(tableName: "user")
     let columns = [
-        Column(columnName: "user_id", dataType: "uuid", isNullable: true),
-        Column(columnName: "category_id", dataType: "uuid", isNullable: false),
-        Column(columnName: "post_id", dataType: "int4", isNullable: true),
-        Column(columnName: "group_id", dataType: "int4", isNullable: false),
-        Column(columnName: "flags", dataType: "_bool", isNullable: true),
-        Column(columnName: "Created_At", dataType: "datetime", isNullable: true)
+        Column(columnName: "user_id", dataType: "uuid", isNullable: true, constrainedTable: nil),
+        Column(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "Category"),
+        Column(columnName: "post_id", dataType: "int4", isNullable: true, constrainedTable: "Post"),
+        Column(columnName: "group_id", dataType: "int4", isNullable: false, constrainedTable: "Group"),
+        Column(columnName: "flags", dataType: "_bool", isNullable: true, constrainedTable: nil),
+        Column(columnName: "Created_At", dataType: "datetime", isNullable: true, constrainedTable: nil)
     ]
-    let primaryKey = Column(columnName: "user_id", dataType: "uuid", isNullable: true)
-    let foreignKeys = [Column(columnName: "category_id", dataType: "uuid", isNullable: false)]
-    let optionalForeignKeys = [Column(columnName: "group_id", dataType: "int4", isNullable: true)]
+    let primaryKey = Column(columnName: "user_id", dataType: "uuid", isNullable: true, constrainedTable: nil)
+    let foreignKeys = [Column(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "Category")]
+    let optionalForeignKeys = [Column(columnName: "group_id", dataType: "int4", isNullable: true, constrainedTable: "Group")]
         
     func testPascalCaseTable() throws {
         let PascalCaseTable = Table(tableName: "UserProfile")
@@ -87,13 +87,13 @@ final class ViiTests: XCTestCase {
     func testForeignKey() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
         let fk = contents.foreignKeyDeclarations!
-        XCTAssertEqual(fk, "\n\n\t@Parent(key: \"category_id\")\n\tvar categoryId: UUID")
+        XCTAssertEqual(fk, "\n\n\t@Parent(key: \"category_id\")\n\tvar categoryId: Category")
     }
     
     func testOptionalForeignKey() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: optionalForeignKeys)
         let fk = contents.foreignKeyDeclarations!
-        XCTAssertEqual(fk, "\n\n\t@OptionalParent(key: \"group_id\")\n\tvar groupId: Int?")
+        XCTAssertEqual(fk, "\n\n\t@OptionalParent(key: \"group_id\")\n\tvar groupId: Group?")
     }
 
     func testImports() throws {

@@ -51,7 +51,8 @@ class ViiPostgresConnection: ViiConnection {
                     SELECT
                          kcu.column_name AS "columnName",
                          c.udt_name AS "dataType",
-                         c.is_nullable::BOOLEAN AS "isNullable"
+                         c.is_nullable::BOOLEAN AS "isNullable",
+                         NULL as "constrainedTable"
                      FROM
                          information_schema.table_constraints tc
                          JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
@@ -75,7 +76,8 @@ class ViiPostgresConnection: ViiConnection {
                      SELECT
                          kcu.column_name AS "columnName",
                          c.udt_name AS "dataType",
-                         c.is_nullable::BOOLEAN AS "isNullable"
+                         c.is_nullable::BOOLEAN AS "isNullable",
+                         ccu.table_name as "constrainedTable"
                      FROM
                          information_schema.table_constraints tc
                          JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
