@@ -50,7 +50,7 @@ final class ViiCommand: Command {
     /// creates a `Credential` struct for connection to DB
     /// - Parameter console: `Console`
     func getCredentials(console: Console) throws -> Credential {
-        return Credential(port: 3306, host: "127.0.0.1", username: "vapor", password: "password", database: "vapor")
+        return Credential(port: 5432, host: "127.0.0.1", username: "vapor", password: "password", database: "sportsyv3")
         console.info("We're going to need to use your DB info, please answer the following:", newLine: true)
         let host = console.ask("Your database host eg (127.0.0.1)".consoleText(color: .brightYellow))
         let portAsString = console.ask("What port is your database running on?".consoleText(color: .brightYellow))
