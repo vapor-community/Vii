@@ -14,7 +14,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/console-kit.git", from: "4.0.0-beta.2"),
-        //.package(url: "https://github.com/google/swift.git", .branch("format")),
         .package(url: "https://github.com/vapor/mysql-kit.git", from: "4.0.0-beta.3"),
         .package(url: "https://github.com/vapor/postgres-kit.git", from: "2.0.0-beta.3.1"),
         .package(url: "https://github.com/vapor/sql-kit.git", from: "3.0.0-beta.3"),
@@ -25,7 +24,7 @@ let package = Package(
             dependencies: ["ConsoleKit", "ViiLibrary"]),
         .target(
             name: "ViiLibrary",
-            dependencies: ["SQLKit", "PostgresKit", "MySQLKit", /*"SwiftFormat"*/]),
+            dependencies: ["SQLKit", "PostgresKit", "MySQLKit"]),
         .testTarget(
             name: "ViiTests",
             dependencies: ["ViiLibrary"]),

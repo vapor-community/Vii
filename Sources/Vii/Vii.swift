@@ -26,7 +26,7 @@ final class ViiCommand: Command {
         let contents: [FileContents] = try tables.map { table in
             return try GenerateFile.generateFileContents(table: table, connection: connection)
         }
-        print(contents[1].getFileContents())
+        print(contents[6].getFileContents())
     }
     
     struct Signature: CommandSignature {
@@ -50,7 +50,7 @@ final class ViiCommand: Command {
     /// creates a `Credential` struct for connection to DB
     /// - Parameter console: `Console`
     func getCredentials(console: Console) throws -> Credential {
-        return Credential(port: 5432, host: "127.0.0.1", username: "vapor", password: "password", database: "sportsyv3")
+        return Credential(port: 3306, host: "127.0.0.1", username: "vapor", password: "password", database: "vapor")
         console.info("We're going to need to use your DB info, please answer the following:", newLine: true)
         let host = console.ask("Your database host eg (127.0.0.1)".consoleText(color: .brightYellow))
         let portAsString = console.ask("What port is your database running on?".consoleText(color: .brightYellow))
@@ -65,8 +65,8 @@ final class ViiCommand: Command {
     }
 
     private let welcome: [String] = [
-       " __      ___ _    _____          _         _____                           _                ",
-       " \\ \\    / (_|_)  / ____|        | |       / ____|                         | |               ",
+       " __      ___ _    _____          _         _____                          _                ",
+       " \\ \\    / (_|_)  / ____|        | |       / ____|                        | |               ",
        "  \\ \\  / / _ _  | |     ___   __| | ___  | |  __  __ _ __   ___ _ __ __ _| |_ ___  _ __    ",
        "   \\ \\/ / | | | | |    / _ \\ / _` |/ _ \\ | | |_ |/ _ \\ '_ \\ / _ \\ '__/ _` | __/ _ \\| '__|  ",
        "    \\  /  | | | | |___| (_) | (_| |  __/ | |__| |  __/ | | |  __/ | | (_| | || (_) | |     ",

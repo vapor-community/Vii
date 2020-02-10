@@ -14,9 +14,10 @@ class ViiPostgresConnection: ViiConnection {
     func getTables() -> EventLoopFuture<[Table]> {
         return self.connection.withConnection{ db in
             return db.sql()
-                     .raw("""
-                        SELECT table_name::text as "tableName" FROM information_schema.tables WHERE table_schema='public'
-                     """)
+                     .select()
+                     .column(SQLAlias(SQLRaw("table_name::text"), as: SQLRaw("\"tableName\"")))
+                     .from(SQLRaw("information_schema.tables"))
+                     .where(SQLRaw("table_schema"), .equal, SQLRaw("'public'"))
                      .all(decoding: Table.self)
             
         }
@@ -29,41 +30,40 @@ class ViiPostgresConnection: ViiConnection {
     func getColumns(table: Table) -> EventLoopFuture<[Column]> {
         return self.connection.withConnection { db in
             return db.sql()
-                     .raw("""
-                        SELECT
-                            column_name::TEXT AS "columnName",
-                            udt_name::TEXT AS "dataType",
-                            is_nullable::BOOLEAN AS "isNullable"
-                        FROM
-                            information_schema.columns
-                        WHERE
-                            table_schema = 'public'
-                            AND table_name = \(bind: table.tableName)
-                    """)
-                    .all(decoding: Column.self)
+                     .select()
+                     .column(SQLAlias(SQLRaw("column_name::TEXT"), as: SQLRaw("\"columnName\"")))
+                     .column(SQLAlias(SQLRaw("udt_name::TEXT"), as: SQLRaw("\"dataType\"")))
+                     .column(SQLAlias(SQLRaw("is_nullable::BOOLEAN"), as: SQLRaw("\"isNullable\"")))
+                     .from(SQLRaw("information_schema.columns"))
+                     .where(SQLRaw("table_schema"), .equal, SQLRaw("'public'"))
+                     .where(SQLRaw("table_name"), .equal, SQLRaw("'\(table.tableName)'"))
+                     .all(decoding: Column.self)
         }
     }
     
     func getPrimaryKey(table: Table) -> EventLoopFuture<Column?> {
         return self.connection.withConnection { db in
             return db.sql()
-                     .raw("""
-                    SELECT
-                         kcu.column_name AS "columnName",
-                         c.udt_name AS "dataType",
-                         c.is_nullable::BOOLEAN AS "isNullable",
-                         NULL as "constrainedTable"
-                     FROM
-                         information_schema.table_constraints tc
-                         JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
-                         JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema
-                             AND tc.table_name = c.table_name
-                             AND ccu.column_name = c.column_name
-                         JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name
-                     WHERE
-                         constraint_type = 'PRIMARY KEY'
-                    AND tc.table_name = \(bind: table.tableName)
-                    """)
+                     .select()
+                     .column(SQLAlias(SQLRaw("kcu.column_name"), as: SQLRaw("\"columnName\"")))
+                     .column(SQLAlias(SQLRaw("c.udt_name"), as: SQLRaw("\"dataType\"")))
+                     .column(SQLAlias(SQLRaw("c.is_nullable::BOOLEAN"), as: SQLRaw("\"isNullable\"")))
+                     .column(SQLAlias(SQLRaw("NULL"), as: SQLRaw("\"constrainedTable\"")))
+                     .from(SQLAlias(SQLRaw("information_schema.table_constraints"), as: SQLIdentifier("tc")))
+                     .join(SQLAlias(SQLRaw("information_schema.constraint_column_usage"), as: SQLIdentifier("ccu")),
+                                    method: SQLJoinMethod.inner,
+                                    on: SQLRaw("tc.constraint_schema = ccu.constraint_schema"))
+                     .join(SQLAlias(SQLRaw("information_schema.columns"), as: SQLRaw("c")),
+                                    method: SQLJoinMethod.inner,
+                                    on: SQLRaw("c.table_schema = tc.constraint_schema"))
+                     .join(SQLAlias(SQLRaw("information_schema.key_column_usage"), as: SQLRaw("kcu")),
+                                    method: SQLJoinMethod.inner,
+                                    on: SQLRaw("tc.constraint_name = kcu.constraint_name"))
+                     .where(SQLRaw("tc.constraint_name"), .equal, SQLRaw("ccu.constraint_name"))
+                     .where(SQLRaw("tc.table_name"), .equal, SQLRaw("c.table_name"))
+                     .where(SQLRaw("ccu.column_name"), .equal, SQLRaw("c.column_name"))
+                     .where(SQLRaw("constraint_type"), .equal, SQLRaw("'PRIMARY KEY'"))
+                     .where(SQLRaw("tc.table_name"), .equal, SQLRaw("'\(table.tableName)'"))
                      .first(decoding: Column.self)
         }
     }
@@ -72,23 +72,27 @@ class ViiPostgresConnection: ViiConnection {
         // duplicated as String(format:...) not available on Linux
         return self.connection.withConnection { db in
             return db.sql()
-                     .raw("""
-                     SELECT
-                         kcu.column_name AS "columnName",
-                         c.udt_name AS "dataType",
-                         c.is_nullable::BOOLEAN AS "isNullable",
-                         ccu.table_name as "constrainedTable"
-                     FROM
-                         information_schema.table_constraints tc
-                         JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
-                         JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema
-                             AND tc.table_name = c.table_name
-                             AND ccu.column_name = c.column_name
-                         JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name
-                     WHERE
-                         constraint_type = 'FOREIGN KEY'
-                     AND tc.table_name = \(bind: table.tableName)
-                     """)
+                     .select()
+                     .column(SQLAlias(SQLRaw("kcu.column_name"), as: SQLRaw("\"columnName\"")))
+                     .column(SQLAlias(SQLRaw("c.udt_name"), as: SQLRaw("\"dataType\"")))
+                     .column(SQLAlias(SQLRaw("c.is_nullable::BOOLEAN"), as: SQLRaw("\"isNullable\"")))
+                     .column(SQLAlias(SQLRaw("NULL"), as: SQLRaw("\"constrainedTable\"")))
+                     .from(SQLAlias(SQLRaw("information_schema.table_constraints"), as: SQLIdentifier("tc")))
+                     .join(SQLAlias(SQLRaw("information_schema.columns"), as: SQLRaw("c")),
+                                  method: SQLJoinMethod.inner,
+                                   on: SQLRaw("c.table_schema = tc.constraint_schema"))
+                     .join(SQLAlias(SQLRaw("information_schema.constraint_column_usage"), as: SQLIdentifier("ccu")),
+                                   method: SQLJoinMethod.inner,
+                                   on: SQLRaw("tc.constraint_schema = ccu.constraint_schema"))
+
+                     .join(SQLAlias(SQLRaw("information_schema.key_column_usage"), as: SQLRaw("kcu")),
+                                   method: SQLJoinMethod.inner,
+                                   on: SQLRaw("tc.constraint_name = kcu.constraint_name"))
+                     .where(SQLRaw("tc.constraint_name"), .equal, SQLRaw("ccu.constraint_name"))
+                     .where(SQLRaw("tc.table_name"), .equal, SQLRaw("c.table_name"))
+                     .where(SQLRaw("ccu.column_name"), .equal, SQLRaw("c.column_name"))
+                     .where(SQLRaw("constraint_type"), .equal, SQLRaw("'FOREIGN KEY'"))
+                     .where(SQLRaw("tc.table_name"), .equal, SQLRaw("'\(table.tableName)'"))
                      .all(decoding: Column.self)
         }
     }
