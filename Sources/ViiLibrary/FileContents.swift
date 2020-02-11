@@ -3,9 +3,9 @@ public struct FileContents {
     var originalTableName: String
     var columns: [Column]
     var primaryKey: Column?
-    var foreignKeys: [Column]
+    var foreignKeys: [ForeignKey]
 
-    init(originalTableName: String, columns: [Column], primaryKey: Column?, foreignKeys: [Column]) {
+    init(originalTableName: String, columns: [Column], primaryKey: Column?, foreignKeys: [ForeignKey]) {
         self.originalTableName = originalTableName
         self.columns = columns
         self.primaryKey = primaryKey
@@ -148,8 +148,8 @@ public struct FileContents {
     func getForeignKeyPropertyDeclaration(column: Column) -> String {
         let isNullable = column.isNullable ? "?" : ""
         let formattedVar = column.columnName.format().lowerCasedFirstLetter()
-        let tableReference = column.constrainedTable ?? ""
-        return "var \(formattedVar): \(tableReference)\(isNullable)"
+        //let tableReference = column.constrainedTable ?? ""
+        return "var \(formattedVar): \(isNullable)"
     }
 
     func getInitializer() -> String {

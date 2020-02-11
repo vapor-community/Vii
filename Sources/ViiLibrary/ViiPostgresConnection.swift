@@ -48,7 +48,6 @@ class ViiPostgresConnection: ViiConnection {
                      .column(SQLAlias(SQLRaw("kcu.column_name"), as: SQLRaw("\"columnName\"")))
                      .column(SQLAlias(SQLRaw("c.udt_name"), as: SQLRaw("\"dataType\"")))
                      .column(SQLAlias(SQLRaw("c.is_nullable::BOOLEAN"), as: SQLRaw("\"isNullable\"")))
-                     .column(SQLAlias(SQLRaw("NULL"), as: SQLRaw("\"constrainedTable\"")))
                      .from(SQLAlias(SQLRaw("information_schema.table_constraints"), as: SQLIdentifier("tc")))
                      .join(SQLAlias(SQLRaw("information_schema.constraint_column_usage"), as: SQLIdentifier("ccu")),
                                     method: SQLJoinMethod.inner,
@@ -68,7 +67,7 @@ class ViiPostgresConnection: ViiConnection {
         }
     }
     
-    func getForeignKeys(table: Table) -> EventLoopFuture<[Column]> {
+    func getForeignKeys(table: Table) -> EventLoopFuture<[ForeignKey]> {
         // duplicated as String(format:...) not available on Linux
         return self.connection.withConnection { db in
             return db.sql()
@@ -76,7 +75,7 @@ class ViiPostgresConnection: ViiConnection {
                      .column(SQLAlias(SQLRaw("kcu.column_name"), as: SQLRaw("\"columnName\"")))
                      .column(SQLAlias(SQLRaw("c.udt_name"), as: SQLRaw("\"dataType\"")))
                      .column(SQLAlias(SQLRaw("c.is_nullable::BOOLEAN"), as: SQLRaw("\"isNullable\"")))
-                     .column(SQLAlias(SQLRaw("NULL"), as: SQLRaw("\"constrainedTable\"")))
+                     .column(SQLAlias(SQLRaw("ccu.table_name"), as: SQLRaw("\"constrainedTable\"")))
                      .from(SQLAlias(SQLRaw("information_schema.table_constraints"), as: SQLIdentifier("tc")))
                      .join(SQLAlias(SQLRaw("information_schema.columns"), as: SQLRaw("c")),
                                   method: SQLJoinMethod.inner,
@@ -93,7 +92,7 @@ class ViiPostgresConnection: ViiConnection {
                      .where(SQLRaw("ccu.column_name"), .equal, SQLRaw("c.column_name"))
                      .where(SQLRaw("constraint_type"), .equal, SQLRaw("'FOREIGN KEY'"))
                      .where(SQLRaw("tc.table_name"), .equal, SQLRaw("'\(table.tableName)'"))
-                     .all(decoding: Column.self)
+                     .all(decoding: ForeignKey.self)
         }
     }
 }
