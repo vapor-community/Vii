@@ -11,5 +11,5 @@ public protocol ViiConnection: AnyObject {
     /// get primary keys
     func getPrimaryKey(table: Table) -> EventLoopFuture<Column?>
     /// get foreign keys
-    func getForeignKeys(table: Table) -> EventLoopFuture<[Column]>
+    func getForeignKeys(table: Table) -> EventLoopFuture<[ForeignKey]>
 }

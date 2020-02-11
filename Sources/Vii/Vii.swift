@@ -26,7 +26,7 @@ final class ViiCommand: Command {
         let contents: [FileContents] = try tables.map { table in
             return try GenerateFile.generateFileContents(table: table, connection: connection)
         }
-        print(contents[6].getFileContents())
+        print(contents[1].getFileContents())
     }
     
     struct Signature: CommandSignature {
