@@ -24,7 +24,7 @@ public struct FileContents {
         return ""
     }
     /// gets swift naming convention ClassName
-    var className: String {
+    public var className: String {
         return self.originalTableName.format()
     }
     /// gets class name declaration

@@ -1,11 +1,17 @@
 import ConsoleKit
 import ViiLibrary
 import NIO
+import Foundation
+import Logging
 
 final class ViiCommand: Command {
     
     private var eventLoopGroup: EventLoopGroup!
     private var eventLoop: EventLoop { return self.eventLoopGroup.next() }
+    
+    let logger = Logger(label: "vii.console") { label in
+        ConsoleLogger(label: label, console: console)
+    }
     
     init(eventLoopGroup: EventLoopGroup) {
         self.eventLoopGroup = eventLoopGroup
@@ -23,12 +29,33 @@ final class ViiCommand: Command {
         let connection = try ConnectionFactory.getViiConnection(selectedDb: db, eventLoop: self.eventLoop, credentials: credentials)
         defer { connection.close() }
         let tables = try connection.getTables().wait()
-        let contents: [FileContents] = try tables.map { table in
+        let fileContents: [FileContents] = try tables.map { table in
             return try GenerateFile.generateFileContents(table: table, connection: connection)
         }
-        contents.map{ x in
-            print( x.getFileContents() )
+        console.output("Attempting to create directory for models".consoleText(color: .brightMagenta), newLine: true)
+        do {
+            try createDir()
+            console.output("Directory created".consoleText(color: .brightGreen), newLine: true)
+        } catch {
+            logger.info("directory could not be created - it may already exist, file generation will stil be attempted")
         }
+        for file in fileContents {
+            do {
+                try createFile(contents: file)
+            } catch {
+                logger.error("The file \(file.className) could not be created")
+            }
+        }
+        console.output("Vii has completed running, cd into './output'. All generated files should be checked for accuracy".consoleText(color: .brightGreen), newLine: true)
+    }
+    
+    private func createFile(contents: FileContents) throws {
+        let path = "./output/" + contents.className + ".swift"
+        try contents.getFileContents().write(toFile: path, atomically: true, encoding: .utf8)
+    }
+    
+    private func createDir() throws {
+        try FileManager.default.createDirectory(atPath: "./output", withIntermediateDirectories: false, attributes: nil)
     }
     
     struct Signature: CommandSignature {
