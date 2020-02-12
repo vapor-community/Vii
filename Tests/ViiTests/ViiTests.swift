@@ -7,16 +7,16 @@ final class ViiTests: XCTestCase {
     let secondaryOutput = "Userprofile"
     let table = Table(tableName: "user")
     let columns = [
-        Column(columnName: "user_id", dataType: "uuid", isNullable: true, constrainedTable: nil),
-        Column(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "Category"),
-        Column(columnName: "post_id", dataType: "int4", isNullable: true, constrainedTable: "Post"),
-        Column(columnName: "group_id", dataType: "int4", isNullable: false, constrainedTable: "Group"),
-        Column(columnName: "flags", dataType: "_bool", isNullable: true, constrainedTable: nil),
-        Column(columnName: "Created_At", dataType: "datetime", isNullable: true, constrainedTable: nil)
+        Column(columnName: "user_id", dataType: "uuid", isNullable: true),
+        Column(columnName: "category_id", dataType: "uuid", isNullable: false),
+        Column(columnName: "post_id", dataType: "int4", isNullable: true),
+        Column(columnName: "group_id", dataType: "int4", isNullable: false),
+        Column(columnName: "flags", dataType: "_bool", isNullable: true),
+        Column(columnName: "Created_At", dataType: "datetime", isNullable: true)
     ]
-    let primaryKey = Column(columnName: "user_id", dataType: "uuid", isNullable: true, constrainedTable: nil)
-    let foreignKeys = [Column(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "Category")]
-    let optionalForeignKeys = [Column(columnName: "group_id", dataType: "int4", isNullable: true, constrainedTable: "Group")]
+    let primaryKey = Column(columnName: "user_id", dataType: "uuid", isNullable: true)
+    let foreignKeys = [ForeignKey(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "Category")]
+    let optionalForeignKeys = [ForeignKey(columnName: "group_id", dataType: "int4", isNullable: true, constrainedTable: "Group")]
         
     func testPascalCaseTable() throws {
         let PascalCaseTable = Table(tableName: "UserProfile")
