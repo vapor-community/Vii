@@ -29,7 +29,7 @@ public struct FileContents {
     }
     /// gets class name declaration
     var classDeclaration: String {
-        return "final class \(self.className): Model {"
+        return "final class \(self.className): Model, Content {"
     }
     /// gets the schema declaration
     var schema: String {
@@ -155,7 +155,7 @@ public struct FileContents {
     }
 
     func getInitializer() -> String {
-        return "\n\n\tinit() {}"
+        return "\n\n\tinit() { }"
     }
 
     /// gets the full initializer
@@ -174,7 +174,9 @@ public struct FileContents {
 
     /// returns the file contents
     public func getFileContents() -> String {
-        return imports + classDeclaration
+        return "import Vapor\n"
+                       + imports
+                       + classDeclaration
                        + schemaFormatted
                        + primaryKeyDeclarationFormatted
                        + foreignKeyDeclarationsFormatted
