@@ -98,7 +98,9 @@ public struct FileContents {
             processedColumns.append(pk)
         }
         if !self.foreignKeys.isEmpty {
-            processedColumns += self.foreignKeys
+            processedColumns += self.foreignKeys.compactMap{ fk in
+                return fk.convertToColumn()
+            }
         }
         return self.columns.filter { !processedColumns.contains($0) }
     }
@@ -122,7 +124,7 @@ public struct FileContents {
     }
     
     /// returns propertyWrapper for column
-    func getPropertyWrapper(column: Column, isPrimary: Bool, isForeign: Bool) -> String {
+    func getPropertyWrapper<T>(column: T, isPrimary: Bool, isForeign: Bool) -> String where T: ViiColumn {
         if isPrimary {
             return "@ID(key: \"\(column.columnName)\")"
         }
@@ -145,11 +147,11 @@ public struct FileContents {
         return "var \(column.columnName.format().lowerCasedFirstLetter()): \(dataType)\(isNullable)"
     }
     
-    func getForeignKeyPropertyDeclaration(column: Column) -> String {
+    func getForeignKeyPropertyDeclaration(column: ForeignKey) -> String {
         let isNullable = column.isNullable ? "?" : ""
         let formattedVar = column.columnName.format().lowerCasedFirstLetter()
-        //let tableReference = column.constrainedTable ?? ""
-        return "var \(formattedVar): \(isNullable)"
+        let tableReference = column.constrainedTable.format()
+        return "var \(formattedVar): \(tableReference)\(isNullable)"
     }
 
     func getInitializer() -> String {
