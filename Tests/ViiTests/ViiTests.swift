@@ -61,7 +61,7 @@ final class ViiTests: XCTestCase {
     func testClassDeclaration() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: [])
         let declaration = contents.classDeclaration
-        let expected = "final class User: Model {"
+        let expected = "final class User: Model, Content {"
         XCTAssertEqual(declaration, expected)
     }
     
