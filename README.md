@@ -1,6 +1,6 @@
 # Vii
 
-### Currently in alpha
+### Currently in pre-alpha
 
 Vii is a code generation tool loosely based on Gii from the [Yii](https://github.com/yiisoft/yii2) framework. Vii can quickly reverse engineer a database schema into [Vapor 4](https://github.com/vapor) compatible class definitions, including matching SQL data types to Swift equivalents. Currently, Vii supports Postgres and MySQL. 
 
