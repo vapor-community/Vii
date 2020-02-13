@@ -8,7 +8,7 @@ Vii is a code generation tool loosely based on Gii from the [Yii](https://github
 To start using Vii, clone the repo
 
 ```swift
-git clone https://github.com/jonny7/Vii.git
+git clone https://github.com/vapor-community/Vii
 ```
 
 ## Usage
