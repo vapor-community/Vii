@@ -1,3 +1,5 @@
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vapor-community/Vii/test)
+
 # Vii
 
 ### Currently in pre-alpha (Give it a whirl but expect to need to make adjustments)
