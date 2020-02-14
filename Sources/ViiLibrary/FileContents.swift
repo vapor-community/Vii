@@ -2,10 +2,10 @@ public struct FileContents {
     
     var originalTableName: String
     var columns: [Column]
-    var primaryKey: Column?
+    var primaryKey: PrimaryKey?
     var foreignKeys: [ForeignKey]
 
-    init(originalTableName: String, columns: [Column], primaryKey: Column?, foreignKeys: [ForeignKey]) {
+    init(originalTableName: String, columns: [Column], primaryKey: PrimaryKey?, foreignKeys: [ForeignKey]) {
         self.originalTableName = originalTableName
         self.columns = columns
         self.primaryKey = primaryKey
@@ -23,22 +23,27 @@ public struct FileContents {
         }
         return ""
     }
+    
     /// gets swift naming convention ClassName
     public var className: String {
         return self.originalTableName.format()
     }
+    
     /// gets class name declaration
     var classDeclaration: String {
         return "final class \(self.className): Model, Content {"
     }
+    
     /// gets the schema declaration
     var schema: String {
         return "static let schema = \"\(self.originalTableName)\""
     }
+    
     /// gets the fromatted schema
     var schemaFormatted: String {
         return "\n\t\(self.schema)\n"
     }
+    
     /// gets closing declaration
     var endDeclaration: String {
         return "\n}"
@@ -47,7 +52,7 @@ public struct FileContents {
     /// gets property wrapper for primary key    
     var primaryKeyWrapper: String? {
         if let pk = self.primaryKey {
-            return self.getPropertyWrapper(column: pk, isPrimary: true, isForeign: false)
+            return self.getPropertyWrapper(column: pk)
         }
         return nil
     }
@@ -77,8 +82,8 @@ public struct FileContents {
     var foreignKeyDeclarations: String? {
         if self.foreignKeys.isEmpty { return nil }
         return self.foreignKeys.map { fk in
-            let propertyWrapper = self.getPropertyWrapper(column: fk, isPrimary: false, isForeign: true)
-            let property = self.getForeignKeyPropertyDeclaration(column: fk)
+            let propertyWrapper = self.getPropertyWrapper(column: fk)
+            let property = self.getPropertyDeclaration(column: fk)
             return "\n\n\t" + propertyWrapper + "\n\t" + property
         }.joined()
     }
@@ -95,11 +100,11 @@ public struct FileContents {
     var trimmedColumns: [Column] {
         var processedColumns:[Column] = []
         if let pk = self.primaryKey {
-            processedColumns.append(pk)
+            processedColumns.append(pk.toColumn)
         }
         if !self.foreignKeys.isEmpty {
             processedColumns += self.foreignKeys.compactMap{ fk in
-                return fk.convertToColumn()
+                return fk.toColumn
             }
         }
         return self.columns.filter { !processedColumns.contains($0) }
@@ -108,9 +113,9 @@ public struct FileContents {
     /// gets declarations for remaining columns
     var columnProperties: String? {
         if self.trimmedColumns.isEmpty { return nil }
-        return self.trimmedColumns.map { col in
-            let propertyWrapper = self.getPropertyWrapper(column: col, isPrimary: false, isForeign: false)
-            let property = self.getPropertyDeclaration(column: col)
+        return self.trimmedColumns.map { column in
+            let propertyWrapper = self.getPropertyWrapper(column: column)
+            let property = self.getPropertyDeclaration(column: column)
             return "\n\t" + propertyWrapper + "\n\t" + property + "\n"
         }.joined()
     }
@@ -123,35 +128,17 @@ public struct FileContents {
         return ""
     }
     
-    /// returns propertyWrapper for column
-    func getPropertyWrapper<T>(column: T, isPrimary: Bool, isForeign: Bool) -> String where T: ViiColumn {
-        if isPrimary {
-            return "@ID(key: \"\(column.columnName)\")"
-        }
-        if isForeign {
-            if column.isNullable {
-                return "@OptionalParent(key: \"\(column.columnName)\")"
-            }
-            return "@Parent(key: \"\(column.columnName)\")"
-        }
-        if SQLType.timestampable.contains(SQLType(column.dataType)){
-            return "@Timestamp(key: \"\(column.columnName)\")"
-        }
-        return "@Field(key: \"\(column.columnName)\")"
+    
+    /// Takes a `ViiColumn` returns the property wrapper declaration
+    /// - Parameter column: `ViiColumn`
+    /// - returns: `String` representation of `@propertyWrapper`
+    func getPropertyWrapper<T>(column: T) -> String where T: ViiColumn {
+        return column.getPropertyWrapper()
     }
 
     /// returns property declartion and optionality
-    func getPropertyDeclaration(column: Column) -> String {
-        let dataType = SQLType(column.dataType).swiftType
-        let isNullable = column.isNullable ? "?" : ""
-        return "var \(column.columnName.format().lowerCasedFirstLetter()): \(dataType)\(isNullable)"
-    }
-    
-    func getForeignKeyPropertyDeclaration(column: ForeignKey) -> String {
-        let isNullable = column.isNullable ? "?" : ""
-        let formattedVar = column.columnName.format().lowerCasedFirstLetter()
-        let tableReference = column.constrainedTable.format()
-        return "var \(formattedVar): \(tableReference)\(isNullable)"
+    func getPropertyDeclaration<T>(column: T) -> String where T: ViiColumn {
+        return column.getPropertyDeclaration()
     }
 
     func getInitializer() -> String {
@@ -161,29 +148,22 @@ public struct FileContents {
     /// gets the full initializer
     func getFullInitializer() -> String {
         let initial = "\n\n\tinit("
-        let args = self.columns.map { col in
-            let dataType = SQLType(col.dataType).swiftType
-            let optionality = col.isNullable ? "?," : ","
-            return " \(col.columnName.format().lowerCasedFirstLetter()): \(dataType)\(optionality)"
+        let args = self.columns.map { column in
+            var propertyType = column.swiftDataType
+            if column.isNullable {
+                propertyType += "? = nil"
+            }
+            return " \(column.swiftVariableName): \(propertyType),"
         }.joined()
-        let assignment = self.columns.map { col in
-            return "\n\t\tself." + col.columnName.format().lowerCasedFirstLetter() + " = " + col.columnName.format().lowerCasedFirstLetter()
+        let assignment = self.columns.map { column in
+            return "\n\t\tself." + column.swiftVariableName + " = " + column.swiftVariableName
         }.joined()
         return initial + args.dropLast() + "){" + assignment + "\n\t}"
     }
 
     /// returns the file contents
     public func getFileContents() -> String {
-        return "import Vapor\n"
-                       + imports
-                       + classDeclaration
-                       + schemaFormatted
-                       + primaryKeyDeclarationFormatted
-                       + foreignKeyDeclarationsFormatted
-                       + columnDeclarationsFormatted
-                       + getInitializer()
-                       + getFullInitializer()
-                       + endDeclaration
+        return "import Fluent\nimport Vapor\n\(imports) \(classDeclaration) \(schemaFormatted) \(primaryKeyDeclarationFormatted) \(foreignKeyDeclarationsFormatted) \(columnDeclarationsFormatted) \(getInitializer()) \(getFullInitializer()) \(endDeclaration)"
     }
 }
 

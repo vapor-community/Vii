@@ -12,9 +12,11 @@ final class ViiTests: XCTestCase {
         Column(columnName: "post_id", dataType: "int4", isNullable: true),
         Column(columnName: "group_id", dataType: "int4", isNullable: false),
         Column(columnName: "flags", dataType: "_bool", isNullable: true),
-        Column(columnName: "Created_At", dataType: "datetime", isNullable: true)
+        Column(columnName: "Created_At", dataType: "datetime", isNullable: true),
+        Column(columnName: "prefix_MOD_date", dataType: "datetime", isNullable: true),
+        Column(columnName: "sys_deletion_dt", dataType: "date", isNullable: false),
     ]
-    let primaryKey = Column(columnName: "user_id", dataType: "uuid", isNullable: true)
+    let primaryKey = PrimaryKey(columnName: "user_id", dataType: "uuid", isNullable: true)
     let foreignKeys = [ForeignKey(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "Category")]
     let optionalForeignKeys = [ForeignKey(columnName: "group_id", dataType: "int4", isNullable: true, constrainedTable: "Group")]
         
@@ -105,7 +107,7 @@ final class ViiTests: XCTestCase {
     func testTrimmedColumns() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
         let trimmedColumns = contents.trimmedColumns
-        let expected = [columns[2],columns[3],columns[4],columns[5]]
+        let expected = [columns[2], columns[3], columns[4], columns[5], columns[6], columns[7]]
         XCTAssertEqual(trimmedColumns, expected)
     }
 
@@ -119,6 +121,24 @@ final class ViiTests: XCTestCase {
         let contents = FileContents(originalTableName: table.tableName, columns: [columns[4]], primaryKey: nil, foreignKeys: [])
         let declaration = contents.columnProperties!
         XCTAssertEqual(declaration, "\n\t@Field(key: \"flags\")\n\tvar flags: [Bool]?\n")
+    }
+    
+    func testTimestamps() throws {
+        let created = FileContents(originalTableName: table.tableName, columns: [columns[5]], primaryKey: primaryKey, foreignKeys: [])
+        let declaration = created.columnProperties!
+        XCTAssertEqual(declaration, "\n\t@Timestamp(key: \"Created_At\", on: .create)\n\tvar createdAt: Date?\n")
+    }
+    
+    func testTimeStampModified() throws {
+        let modified = FileContents(originalTableName: table.tableName, columns: [columns[6]], primaryKey: primaryKey, foreignKeys: [])
+        let declaration = modified.columnProperties!
+        XCTAssertEqual(declaration, "\n\t@Timestamp(key: \"prefix_MOD_date\", on: .update)\n\tvar prefixModDate: Date?\n")
+    }
+    
+    func testTimeStampDeleted() throws {
+        let deleted = FileContents(originalTableName: table.tableName, columns: [columns[7]], primaryKey: primaryKey, foreignKeys: [])
+        let declaration = deleted.columnProperties!
+        XCTAssertEqual(declaration, "\n\t@Timestamp(key: \"sys_deletion_dt\", on: .delete)\n\tvar sysDeletionDt: Date?\n")
     }
 
     static var allTests = [
@@ -137,6 +157,9 @@ final class ViiTests: XCTestCase {
         ("testImports", testImports),
         ("testTrimmedColumns", testTrimmedColumns),
         ("testColumn", testColumn),
-        ("testArrayProps", testArrayProps)
+        ("testArrayProps", testArrayProps),
+        ("testTimestamps", testTimestamps),
+        ("testTimeStampModified", testTimeStampModified),
+        ("testTimeStampDeleted", testTimeStampDeleted)
     ]
 }

@@ -3,10 +3,10 @@ extension String {
         return self.split{ !$0.isLetter }
     }
     
-    /// Removes non alpha chars
-    func stripped() -> String {
-        return self.split{ !$0.isLetter }.joined()
-    }
+//    /// Removes non alpha chars
+//    func stripped() -> String {
+//        return self.split{ !$0.isLetter }.joined()
+//    }
     
     /// formats common naming conventions to Swift class naming conventions where possible
     func format() -> String {
