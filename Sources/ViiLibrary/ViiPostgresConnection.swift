@@ -41,7 +41,7 @@ class ViiPostgresConnection: ViiConnection {
         }
     }
     
-    func getPrimaryKey(table: Table) -> EventLoopFuture<Column?> {
+    func getPrimaryKey(table: Table) -> EventLoopFuture<PrimaryKey?> {
         return self.connection.withConnection { db in
             return db.sql()
                      .select()
@@ -63,7 +63,7 @@ class ViiPostgresConnection: ViiConnection {
                      .where(SQLRaw("ccu.column_name"), .equal, SQLRaw("c.column_name"))
                      .where(SQLRaw("constraint_type"), .equal, SQLRaw("'PRIMARY KEY'"))
                      .where(SQLRaw("tc.table_name"), .equal, SQLRaw("'\(table.tableName)'"))
-                     .first(decoding: Column.self)
+                     .first(decoding: PrimaryKey.self)
         }
     }
     
