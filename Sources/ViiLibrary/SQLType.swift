@@ -188,33 +188,30 @@ struct SQLType: Equatable {
 
     var swiftType: String {
         switch self {
-        case .bit, .bpchar, .bytea, .varbit: return "Data"
-        case .bool, .boolean: return "Bool"
-        case .box, .point, .polygon: return "Postgres geometric types are unsupported"
-        case .char, .mediumText, .longText, .text, .tinyText, .varchar: return "String"
-        case .dec, .decimal, .double, .money, .numeric: return "Double"
+        case .bit, .bpchar, .bytea, .varbit, ._bit, ._bpchar, ._bytea, ._varbit: return "Data"
+        case .bool, .boolean, ._bool: return "Bool"
+        case .box, .point, .polygon: return "/* Defaulted to String as Postgres geometric types are unsupported*/String"
+        case .char, .mediumText, .longText, .text, .tinyText, .varchar, ._char, ._text: return "String"
+        case .dec, .decimal, .double, .money, .numeric, ._money, ._numeric: return "Double"
         case .date, .dateTime, .time, .timestamp, .timestampz: return "Date"
-        case .float, .float4, .float8: return "Float"
-        case .int, .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt, .bigInt, .year: return "Int"
-        case .json: return "JSON"
+        case .float, .float4, .float8, ._float4, ._float8: return "Float"
+        case .int, .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt, .bigInt, .year, ._int2, ._int4, ._int8: return "Int"
+        case .json, ._json, ._jsonb: return "JSON"
         case .jsonb: return "JSON"
-        case .uuid: return "UUID"
-        case .xml: return "XML"
-        // array switch
-        case ._bool: return "[Bool]"
-        case ._bit, ._bpchar, ._bytea, ._varbit: return "[Data]"
-        case ._char: return "[String]"
-        case ._float4, ._float8: return "[Float]"
-        case ._int2, ._int4, ._int8: return "[Int]"
-        case ._json, ._jsonb: return "[JSON]"
-        case ._money, ._numeric: return "[Double]"
-        case ._text: return "[String]"
-        case ._uuid: return "[UUID]"
-        case ._xml: return "[XML]"
-        default: return " // Couldn't map type - this type may be missing, raise a GH issue to help improve this"
+        case .uuid, ._uuid: return "UUID"
+        case .xml, ._xml: return "XML"
+        default: return "/* Defaulted to String as couldn't map type - this type may be missing, raise a GH issue to help improve this*/String"
         }
     }
     
-    static let foundationRequired: [SQLType] = [.uuid, ._uuid, .json, .jsonb, .xml, .date, .dateTime, .time, .timestamp, .timestampz, .bit, .bytea, .varbit]
+    static let foundationRequired: [SQLType] = [
+                                                .uuid, ._uuid, .json, .jsonb, .xml, .date, .dateTime,
+                                                .time, .timestamp, .timestampz, .bit, .bytea, .varbit
+                                               ]
     static let timestampable: [SQLType] = [.date, .dateTime, .time, .timestamp, .timestampz]
+    static let potsgresArray: [SQLType] = [
+                                             ._bool, ._bit, ._bpchar, ._bytea, ._varbit, ._char,
+                                             ._float4, ._float8, ._int2, ._int4, ._int8, ._json,
+                                             ._jsonb, ._money, ._numeric, ._text, ._uuid, ._xml
+                                          ]
 }

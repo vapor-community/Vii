@@ -1,6 +1,6 @@
 public struct GenerateFile {
       
-    public static func generateFileContents(table: Table, connection: ViiConnection) throws -> FileContents {
+public static func generateFileContents(table: Table, connection: ViiConnection) throws -> FileContents {
  
         let columns = try connection.getColumns(table: table).wait()
         let primaryKey = try connection.getPrimaryKey(table: table).wait()
