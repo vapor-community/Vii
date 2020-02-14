@@ -3,11 +3,9 @@ import MySQLKit
 class ViiMySQLConnection: ViiConnection {
 
     var connection: MySQLConnection
-    var schema: String
 
     init(eventLoop: EventLoop, credentials: Credential) throws {
         self.connection = try MySQLConnection.create(on: eventLoop, credentials: credentials).wait()
-        self.schema = credentials.database
     }
 
     func getTables() -> EventLoopFuture<[Table]> {
@@ -16,7 +14,7 @@ class ViiMySQLConnection: ViiConnection {
                 .select()
                 .column(SQLAlias(SQLRaw("table_name"), as: SQLRaw("\"tableName\"")))
                 .from(SQLRaw("information_schema.tables"))
-                .where(SQLRaw("table_schema"), .equal, SQLRaw("'\(self.schema)'"))
+                .where(SQLRaw("table_schema"), .equal, SQLRaw("schema()"))
                 .all(decoding: Table.self)
         }
     }
@@ -40,7 +38,7 @@ class ViiMySQLConnection: ViiConnection {
         }
     }
 
-    func getPrimaryKey(table: Table) -> EventLoopFuture<Column?> {
+    func getPrimaryKey(table: Table) -> EventLoopFuture<PrimaryKey?> {
         return self.connection.withConnection { db in
             return db.sql()
                      .select()
@@ -56,7 +54,7 @@ class ViiMySQLConnection: ViiConnection {
                      .where(SQLRaw("constraint_name"), .equal, SQLRaw("'PRIMARY'"))
                      .where(SQLRaw("kcu.table_name"), .equal, SQLRaw("'\(table.tableName)'"))
                      .where(SQLRaw("kcu.column_name"), .equal, SQLRaw("c.column_name"))
-                     .first(decoding: Column.self)
+                     .first(decoding: PrimaryKey.self)
         }
     }
     
