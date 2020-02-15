@@ -15,9 +15,11 @@ final class ViiTests: XCTestCase {
         Column(columnName: "Created_At", dataType: "datetime", isNullable: true),
         Column(columnName: "prefix_MOD_date", dataType: "datetime", isNullable: true),
         Column(columnName: "sys_deletion_dt", dataType: "date", isNullable: false),
+        Column(columnName: "abbreviations", dataType: "_char", isNullable: false),
+        Column(columnName: "section_id", dataType: "int", isNullable: false),
     ]
     let primaryKey = PrimaryKey(columnName: "user_id", dataType: "uuid", isNullable: true)
-    let foreignKeys = [ForeignKey(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "Category")]
+    let foreignKeys = [ForeignKey(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "category")]
     let optionalForeignKeys = [ForeignKey(columnName: "group_id", dataType: "int4", isNullable: true, constrainedTable: "Group")]
         
     func testPascalCaseTable() throws {
@@ -101,13 +103,13 @@ final class ViiTests: XCTestCase {
     func testImports() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: optionalForeignKeys)
         let imports = contents.imports
-        XCTAssertEqual(imports, "import Foundation\n\n")
+        XCTAssertEqual(imports, "import Fluent\nimport Vapor\nimport Foundation\n\n")
     }
 
     func testTrimmedColumns() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
         let trimmedColumns = contents.trimmedColumns
-        let expected = [columns[2], columns[3], columns[4], columns[5], columns[6], columns[7]]
+        let expected = [columns[2], columns[3], columns[4], columns[5], columns[6], columns[7], columns[8], columns[9]]
         XCTAssertEqual(trimmedColumns, expected)
     }
 
@@ -140,6 +142,58 @@ final class ViiTests: XCTestCase {
         let declaration = deleted.columnProperties!
         XCTAssertEqual(declaration, "\n\t@Timestamp(key: \"sys_deletion_dt\", on: .delete)\n\tvar sysDeletionDt: Date?\n")
     }
+    
+    func testInitializerArgument() throws {
+        let nonOptional = columns[1]
+        let initializer = nonOptional.getInitializer()
+        XCTAssertEqual(initializer, "categoryId: UUID")
+    }
+    
+    func testOptionalInitializerArgument() throws {
+        let optional = columns[2]
+        let initializer = optional.getInitializer()
+        XCTAssertEqual(initializer, "postId: Int? = nil")
+    }
+    
+    func testOptionalArrayInitiazerArgument() throws {
+        let nonOptional = columns[4]
+        let initializer = nonOptional.getInitializer()
+        XCTAssertEqual(initializer, "flags: [Bool]? = nil")
+    }
+    
+    func testArrayInitiazerArgument() throws {
+        let nonOptional = columns[8]
+        let initializer = nonOptional.getInitializer()
+        XCTAssertEqual(initializer, "abbreviations: [String]")
+    }
+    
+    func testPrimaryKeyInitiazerArgument() throws {
+        let initializer = primaryKey.getInitializer()
+        XCTAssertEqual(initializer, "userId: UUID? = nil")
+    }
+    
+    func testForeignKeyInitializerArguments() throws {
+        let initializer = foreignKeys[0].getInitializer()
+        XCTAssertEqual(initializer, "categoryId: Category")
+    }
+    
+    func testOptionalForeignKeyInitializerArguments() throws {
+        let initializer = optionalForeignKeys[0].getInitializer()
+        XCTAssertEqual(initializer, "groupId: Group? = nil")
+    }
+
+    func testInitializerSignature() throws {
+        let combinedForeignKeys = foreignKeys + optionalForeignKeys
+        let selectedColumns = [columns[9], columns[4]]
+        let fileContents = FileContents(originalTableName: "UserProfile", columns: selectedColumns, primaryKey: primaryKey, foreignKeys: combinedForeignKeys)
+        XCTAssertEqual(fileContents.getInitializerSignature(), "\n\n\tinit(userId: UUID? = nil, categoryId: Category, groupId: Group? = nil, sectionId: Int, flags: [Bool]? = nil){")
+    }
+    
+    func testinitializerBody() throws {
+        let twoColumns = [columns[0], columns[1]]
+        let body = FileContents(originalTableName: "UserProfile", columns: twoColumns, primaryKey: nil, foreignKeys: [])
+        XCTAssertEqual(body.getInitializerBody(), "\n\t\tself.userId = userId\n\t\tself.categoryId = categoryId\n\t}")
+    }
 
     static var allTests = [
         ("testPascalCaseTable", testPascalCaseTable),
@@ -160,6 +214,13 @@ final class ViiTests: XCTestCase {
         ("testArrayProps", testArrayProps),
         ("testTimestamps", testTimestamps),
         ("testTimeStampModified", testTimeStampModified),
-        ("testTimeStampDeleted", testTimeStampDeleted)
+        ("testTimeStampDeleted", testTimeStampDeleted),
+        ("testInitializerArgument", testInitializerArgument),
+        ("testOptionalArrayInitiazerArgument", testOptionalArrayInitiazerArgument),
+        ("testPrimaryKeyInitiazerArgument", testPrimaryKeyInitiazerArgument),
+        ("testArrayInitiazerArgument", testArrayInitiazerArgument),
+        ("testForeignKeyInitializerArguments", testForeignKeyInitializerArguments),
+        ("testOptionalForeignKeyInitializerArguments", testOptionalForeignKeyInitializerArguments),
+        ("testInitializerSignature", testInitializerSignature),
     ]
 }
