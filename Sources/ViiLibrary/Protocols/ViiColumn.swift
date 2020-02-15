@@ -7,4 +7,5 @@ protocol ViiColumn {
     
     func getPropertyWrapper() -> String
     func getPropertyDeclaration() -> String
+    func getInitializer() -> String
 }

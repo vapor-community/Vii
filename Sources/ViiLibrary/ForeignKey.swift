@@ -27,4 +27,9 @@ public struct ForeignKey: ViiColumn, Codable {
         let isNullable = self.isNullable ? "?" : ""
         return "var \(self.swiftVariableName): \(self.swiftModelReference)\(isNullable)"
     }
+    
+    func getInitializer() -> String {
+        let isNullable = self.isNullable ? "? = nil" : ""
+        return "\(self.swiftVariableName): \(self.swiftModelReference)\(isNullable)"
+    }
 }
