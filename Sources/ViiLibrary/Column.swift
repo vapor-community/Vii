@@ -42,6 +42,14 @@ public struct Column: ViiColumn, Codable, Equatable {
         }
         return ".create"
     }
+    
+    func getInitializer() -> String {
+        let isArray = SQLType.potsgresArray.contains(SQLType(self.dataType))
+        let isOptional = self.isNullable ? "?" : ""
+        let propertyType = isArray ? "[\(self.swiftDataType)]\(isOptional)" : "\(self.swiftDataType)\(isOptional)"
+        let optionalAssignment = self.isNullable ? " = nil" : ""
+        return "\(self.swiftVariableName): \(propertyType)\(optionalAssignment)"
+    }
 }
 
 extension NSRegularExpression {
