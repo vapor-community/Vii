@@ -1,4 +1,4 @@
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vapor-community/Vii/test)
+![test](https://github.com/vapor-community/Vii/workflows/test/badge.svg)
 
 # Vii
 
