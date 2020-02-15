@@ -105,8 +105,8 @@ public struct FileContents {
             processedColumns.append(pk.toColumn)
         }
         if !self.foreignKeys.isEmpty {
-            processedColumns += self.foreignKeys.compactMap{ fk in
-                return fk.toColumn
+            for fk in self.foreignKeys {
+                processedColumns.append(fk.toColumn)
             }
         }
         return self.columns.filter { !processedColumns.contains($0) }
