@@ -15,13 +15,15 @@ public struct FileContents {
     /// computed properties
     /// returns list of any imports
     var imports: String {
-        for col in self.columns {
-            let sqlType = SQLType(col.dataType)
+        var modulesToImport = "import Fluent\nimport Vapor\n"
+        for column in self.columns {
+            let sqlType = SQLType(column.dataType)
             if SQLType.foundationRequired.contains(sqlType){
-                return "import Foundation\n\n"
+                modulesToImport += "import Foundation\n\n"
+                return modulesToImport
             }
         }
-        return ""
+        return modulesToImport
     }
     
     /// gets swift naming convention ClassName
@@ -145,25 +147,35 @@ public struct FileContents {
         return "\n\n\tinit() { }"
     }
 
-    /// gets the full initializer
+    /// gets the initializer signature
+    func getInitializerSignature() -> String {
+        var startInit = "\n\n\tinit("
+        if let primaryKey = self.primaryKey?.getInitializer() {
+            startInit += "\(primaryKey), "
+        }
+        let foreignKeyArgs: String = self.foreignKeys.map { foreignKey in
+            return "\(foreignKey.getInitializer()), "
+        }.joined()
+        let columnArgs: String = self.trimmedColumns.enumerated().map { (offset: Int, element: Column) -> String in
+            offset == self.trimmedColumns.count - 1 ? element.getInitializer() : "\(element.getInitializer()), "
+        }.joined()
+        return "\(startInit)\(foreignKeyArgs)\(columnArgs)){"
+    }
+    
+    func getInitializerBody() -> String {
+        let body = self.columns.map { column in
+            return "\n\t\tself.\(column.swiftVariableName) = \(column.swiftVariableName)"
+        }
+        return "\(body.joined())\n\t}"
+    }
+    
     func getFullInitializer() -> String {
-        let initial = "\n\n\tinit("
-        let args = self.columns.map { column in
-            var propertyType = column.swiftDataType
-            if column.isNullable {
-                propertyType += "? = nil"
-            }
-            return " \(column.swiftVariableName): \(propertyType),"
-        }.joined()
-        let assignment = self.columns.map { column in
-            return "\n\t\tself." + column.swiftVariableName + " = " + column.swiftVariableName
-        }.joined()
-        return initial + args.dropLast() + "){" + assignment + "\n\t}"
+        return "\(self.getInitializerSignature())\(self.getInitializerBody())"
     }
 
     /// returns the file contents
     public func getFileContents() -> String {
-        return "import Fluent\nimport Vapor\n\(imports) \(classDeclaration) \(schemaFormatted) \(primaryKeyDeclarationFormatted) \(foreignKeyDeclarationsFormatted) \(columnDeclarationsFormatted) \(getInitializer()) \(getFullInitializer()) \(endDeclaration)"
+        return "\(imports) \(classDeclaration) \(schemaFormatted) \(primaryKeyDeclarationFormatted) \(foreignKeyDeclarationsFormatted) \(columnDeclarationsFormatted) \(getInitializer()) \(getFullInitializer()) \(endDeclaration)"
     }
 }
 

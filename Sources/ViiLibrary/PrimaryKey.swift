@@ -7,6 +7,10 @@ public struct PrimaryKey: ViiColumn, Codable, Equatable {
         return self.columnName.format().lowerCasedFirstLetter()
     }
     
+    var swiftDataType: String {
+        return SQLType(self.dataType).swiftType
+    }
+    
     var toColumn: Column {
         return Column(columnName: self.columnName, dataType: self.dataType, isNullable: self.isNullable)
     }
@@ -18,5 +22,9 @@ public struct PrimaryKey: ViiColumn, Codable, Equatable {
     func getPropertyDeclaration() -> String {
         let dataType = SQLType(self.dataType).swiftType
         return "var \(self.swiftVariableName): \(dataType)?"
+    }
+    
+    func getInitializer() -> String {
+        return "\(self.swiftVariableName): \(self.swiftDataType)? = nil"
     }
 }

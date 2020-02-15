@@ -28,6 +28,15 @@ So to use with Postgres DB.
 swift run Vii postgres
 ```
 
+## @Timestamp
+Vapor's `@Timestamp` propertyWrapper uses an enum called `Trigger` which helps Fluent determine whether to update this column on creation, update or deletion. Because this is not derivable from the database columns directly, Vii makes an educated guess on what case to apply to the timestamp, this is done based on the column name.
+
+## Optional Model Properties
+Any property that is potentially `Null` in the database will be made optional in the model definition. The initializer's signature will apply them directly as none, rather than omit them eg
+```swift
+init(id: Int? = nil...)
+```
+
 Vii will generate all the models in the specified DB and produce an output folder within the project
 
 ### To Implement
