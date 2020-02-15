@@ -89,7 +89,7 @@ class ViiPostgresConnection: ViiConnection {
                                    on: SQLRaw("tc.constraint_name = kcu.constraint_name"))
                      .where(SQLRaw("tc.constraint_name"), .equal, SQLRaw("ccu.constraint_name"))
                      .where(SQLRaw("tc.table_name"), .equal, SQLRaw("c.table_name"))
-                     .where(SQLRaw("ccu.column_name"), .equal, SQLRaw("c.column_name"))
+                     .where(SQLRaw("kcu.column_name"), .equal, SQLRaw("c.column_name"))
                      .where(SQLRaw("constraint_type"), .equal, SQLRaw("'FOREIGN KEY'"))
                      .where(SQLRaw("tc.table_name"), .equal, SQLRaw("'\(table.tableName)'"))
                      .all(decoding: ForeignKey.self)
