@@ -11,11 +11,11 @@ class ViiMySQLConnection: ViiConnection {
     func getTables() -> EventLoopFuture<[Table]> {
         return self.connection.withConnection { db in
             return db.sql()
-                .select()
-                .column(SQLAlias(SQLRaw("table_name"), as: SQLRaw("\"tableName\"")))
-                .from(SQLRaw("information_schema.tables"))
-                .where(SQLRaw("table_schema"), .equal, SQLRaw("schema()"))
-                .all(decoding: Table.self)
+                     .select()
+                     .column(SQLAlias(SQLRaw("table_name"), as: SQLRaw("\"tableName\"")))
+                     .from(SQLRaw("information_schema.tables"))
+                     .where(SQLRaw("table_schema"), .equal, SQLRaw("schema()"))
+                     .all(decoding: Table.self)
         }
     }
 
@@ -26,15 +26,16 @@ class ViiMySQLConnection: ViiConnection {
     func getColumns(table: Table) -> EventLoopFuture<[Column]> {
         return self.connection.withConnection { db in
             return db.sql()
-                .select()
-                .column(SQLAlias(SQLRaw("COLUMN_NAME"), as: SQLRaw("\"columnName\"")))
-                .column(SQLAlias(SQLRaw("DATA_TYPE"), as: SQLRaw("\"dataType\"")))
-                .column(SQLAlias(SQLRaw("CASE WHEN IS_NULLABLE = 'NO' THEN FALSE ELSE TRUE END"), as: SQLRaw("\"isNullable\"")))
-                .from(SQLRaw("information_schema.columns"))
-                .where(SQLRaw("table_schema"), .equal, SQLRaw("schema()"))
-                .where(SQLRaw("TABLE_NAME"), .equal, SQLRaw("'\(table.tableName)'"))
-                .orderBy(SQLRaw("table_name, ordinal_position"))
-                .all(decoding: Column.self)
+                     .select()
+                     .column(SQLAlias(SQLRaw("COLUMN_NAME"), as: SQLRaw("\"columnName\"")))
+                     .column(SQLAlias(SQLRaw("DATA_TYPE"), as: SQLRaw("\"dataType\"")))
+                     .column(SQLAlias(SQLRaw("CASE WHEN IS_NULLABLE = 'NO' THEN FALSE ELSE TRUE END"),
+                                     as: SQLRaw("\"isNullable\"")))
+                     .from(SQLRaw("information_schema.columns"))
+                     .where(SQLRaw("table_schema"), .equal, SQLRaw("schema()"))
+                     .where(SQLRaw("TABLE_NAME"), .equal, SQLRaw("'\(table.tableName)'"))
+                     .orderBy(SQLRaw("table_name, ordinal_position"))
+                     .all(decoding: Column.self)
         }
     }
 
@@ -44,7 +45,8 @@ class ViiMySQLConnection: ViiConnection {
                      .select()
                      .column(SQLAlias(SQLRaw("kcu.column_name"), as: SQLRaw("\"columnName\"")))
                      .column(SQLAlias(SQLRaw("c.DATA_TYPE"), as: SQLRaw("\"dataType\"")))
-                     .column(SQLAlias(SQLRaw("CASE WHEN c.IS_NULLABLE = 'NO' THEN FALSE ELSE TRUE END"), as: SQLRaw("\"isNullable\"")))
+                     .column(SQLAlias(SQLRaw("CASE WHEN c.IS_NULLABLE = 'NO' THEN FALSE ELSE TRUE END"),
+                                      as: SQLRaw("\"isNullable\"")))
                      .column(SQLAlias(SQLRaw("c.DATA_TYPE"), as: SQLRaw("\"constrainedTable\"")))
                      .from(SQLAlias(SQLRaw("information_schema.KEY_COLUMN_USAGE"), as: SQLIdentifier("kcu")))
                      .join(SQLAlias(SQLRaw("information_schema.columns"), as: SQLIdentifier("c")),
@@ -57,14 +59,15 @@ class ViiMySQLConnection: ViiConnection {
                      .first(decoding: PrimaryKey.self)
         }
     }
-    
+
     func getForeignKeys(table: Table) -> EventLoopFuture<[ForeignKey]> {
         return self.connection.withConnection { db in
             return db.sql()
                      .select()
                      .column(SQLAlias(SQLRaw("c.COLUMN_NAME"), as: SQLRaw("\"columnName\"")))
                      .column(SQLAlias(SQLRaw("c.DATA_TYPE"), as: SQLRaw("\"dataType\"")))
-                     .column(SQLAlias(SQLRaw("CASE WHEN c.IS_NULLABLE = 'NO' THEN FALSE ELSE TRUE END"), as: SQLRaw("\"isNullable\"")))
+                     .column(SQLAlias(SQLRaw("CASE WHEN c.IS_NULLABLE = 'NO' THEN FALSE ELSE TRUE END"),
+                                      as: SQLRaw("\"isNullable\"")))
                      .column(SQLAlias(SQLRaw("kcu.REFERENCED_TABLE_NAME"), as: SQLRaw("\"constrainedTable\"")))
                      .from(SQLAlias(SQLRaw("information_schema.TABLE_CONSTRAINTS"), as: SQLIdentifier("tc")))
                      .join(SQLAlias(SQLRaw("information_schema.KEY_COLUMN_USAGE"), as: SQLIdentifier("kcu")),

@@ -1,12 +1,12 @@
 extension String {
     func split() -> [Substring] {
-        return self.split{ !$0.isLetter }
+        return self.split { !$0.isLetter }
     }
-    
+
     /// formats common naming conventions to Swift class naming conventions where possible
     func format() -> String {
         let components = self.split()
-        let indicies: [String] = components.map{
+        let indicies: [String] = components.map {
             if false == $0.isUpperCaseString {
                 // inidices of capital letters
                 let indicies = $0.getPascalCaseIndexes()
