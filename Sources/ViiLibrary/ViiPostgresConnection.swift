@@ -24,7 +24,7 @@ class ViiPostgresConnection: ViiConnection {
     }
 
     func close() {
-        try! self.connection.close().wait()
+        try? self.connection.close().wait()
     }
 
     func getColumns(table: Table) -> EventLoopFuture<[Column]> {
