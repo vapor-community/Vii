@@ -5,7 +5,7 @@ public enum ViiDatabaseType {
 }
 
 extension ViiDatabaseType {
-    public init?(rawValue: String){
+    public init?(rawValue: String) {
         switch rawValue {
         case "mysql":
             self = .mysql

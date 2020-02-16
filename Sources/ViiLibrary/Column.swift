@@ -4,7 +4,7 @@ public struct Column: ViiColumn, Codable, Equatable {
     public var columnName: String
     public var dataType: String
     public var isNullable: Bool
-    
+
     var swiftDataType: String {
         return SQLType(self.dataType).swiftType
     }
@@ -12,12 +12,12 @@ public struct Column: ViiColumn, Codable, Equatable {
     var swiftVariableName: String {
         return self.columnName.format().lowerCasedFirstLetter()
     }
-    
+
     func isTimestamp() -> Bool {
         if SQLType.timestampable.contains(SQLType(self.dataType)) { return true }
         return false
     }
-   
+
     func getPropertyWrapper() -> String {
         if isTimestamp() {
             let triggerEnumCase = self.getTimestampEnumeration()
@@ -25,13 +25,13 @@ public struct Column: ViiColumn, Codable, Equatable {
         }
         return "@Field(key: \"\(self.columnName)\")"
     }
-    
+
     func getPropertyDeclaration() -> String {
-        let propertyDataType = SQLType.potsgresArray.contains(SQLType(self.dataType)) ? "[\(self.swiftDataType)]" : self.swiftDataType
+       let propertyDataType = SQLType.potsgresArray.contains(SQLType(self.dataType)) ? "[\(self.swiftDataType)]" : self.swiftDataType
         let isNullable = self.isNullable || self.isTimestamp() ? "?" : ""
         return "var \(self.swiftVariableName): \(propertyDataType)\(isNullable)"
     }
-    
+
     private func getTimestampEnumeration() -> String {
         let deleted = NSRegularExpression("(deleted|del)")
         let updated = NSRegularExpression("(update|mod)")
@@ -42,7 +42,7 @@ public struct Column: ViiColumn, Codable, Equatable {
         }
         return ".create"
     }
-    
+
     func getInitializer() -> String {
         let isArray = SQLType.potsgresArray.contains(SQLType(self.dataType))
         let isOptional = self.isNullable ? "?" : ""
@@ -68,4 +68,3 @@ extension NSRegularExpression {
         return firstMatch(in: string, options: [], range: range) != nil
     }
 }
-

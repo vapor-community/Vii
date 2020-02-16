@@ -1,10 +1,10 @@
 struct SQLType: Equatable {
     let dataType: String
-    
-    init(_ dataType: String){
+
+    init(_ dataType: String) {
         self.dataType = dataType
     }
-    
+
     // standard types
     static var bigInt: SQLType {
         return .init("bigint")
@@ -129,7 +129,7 @@ struct SQLType: Equatable {
     static var year: SQLType {
         return .init("year")
     }
-    
+
     // Array Types
     static var _bit: SQLType {
         return .init("_bit")
@@ -195,15 +195,16 @@ struct SQLType: Equatable {
         case .dec, .decimal, .double, .money, .numeric, ._money, ._numeric: return "Double"
         case .date, .dateTime, .time, .timestamp, .timestampz: return "Date"
         case .float, .float4, .float8, ._float4, ._float8: return "Float"
-        case .int, .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt, .bigInt, .year, ._int2, ._int4, ._int8: return "Int"
+        case .int, .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt,
+             .bigInt, .year, ._int2, ._int4, ._int8: return "Int"
         case .json, ._json, ._jsonb: return "JSON"
         case .jsonb: return "JSON"
         case .uuid, ._uuid: return "UUID"
         case .xml, ._xml: return "XML"
-        default: return "/* Defaulted to String as couldn't map type - this type may be missing, raise a GH issue to help improve this*/String"
+        default: return "/* Defaulted to String as couldn't map type*/String"
         }
     }
-    
+
     static let foundationRequired: [SQLType] = [
                                                 .uuid, ._uuid, .json, .jsonb, .xml, .date, .dateTime,
                                                 .time, .timestamp, .timestampz, .bit, .bytea, .varbit
