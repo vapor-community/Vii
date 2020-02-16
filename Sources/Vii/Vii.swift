@@ -5,18 +5,18 @@ import Foundation
 import Logging
 
 final class ViiCommand: Command {
-    
+
     private var eventLoopGroup: EventLoopGroup!
     private var eventLoop: EventLoop { return self.eventLoopGroup.next() }
-    
+
     let logger = Logger(label: "vii.console") { label in
         ConsoleLogger(label: label, console: console)
     }
-    
+
     init(eventLoopGroup: EventLoopGroup) {
         self.eventLoopGroup = eventLoopGroup
     }
-    
+
     func run(using context: CommandContext, signature: ViiCommand.Signature) throws {
         let dbArgument = signature.db
         let dbType = ViiDatabaseType(rawValue: dbArgument)
@@ -46,36 +46,38 @@ final class ViiCommand: Command {
                 logger.error("The file \(file.className) could not be created")
             }
         }
-        console.output("Vii has completed running, cd into './output'. All generated files should be checked for accuracy".consoleText(color: .brightGreen), newLine: true)
+        console.output("""
+            Vii has completed running, cd into './output'. All generated files should be checked for accuracy
+        """.consoleText(color: .brightGreen), newLine: true)
     }
-    
+
     private func createFile(contents: FileContents) throws {
         let path = "./output/" + contents.className + ".swift"
         try contents.getFileContents().write(toFile: path, atomically: true, encoding: .utf8)
     }
-    
+
     private func createDir() throws {
         try FileManager.default.createDirectory(atPath: "./output", withIntermediateDirectories: false, attributes: nil)
     }
-    
+
     struct Signature: CommandSignature {
         @Argument(name: "db", help: "Specify what RDBMs you're using")
         var db: String
-        
+
         init() {}
     }
-    
+
     var help: String {
         "A magical tool that builds Vapor models from RDBMs"
     }
-    
+
     /// A little welcome piece for the console
     func sayHello() {
         for line in welcome {
             console.output(line.consoleText(color: .brightMagenta))
         }
     }
-    
+
     /// creates a `Credential` struct for connection to DB
     /// - Parameter console: `Console`
     func getCredentials(console: Console) throws -> Credential {

@@ -10,8 +10,10 @@ extension PostgresConnection {
             address = try .init(ipAddress: credentials.host, port: credentials.port)
             #endif
             return connect(to: address, on: eventLoop).flatMap { conn in
-                return conn.authenticate(username: credentials.username, database: credentials.database, password: credentials.password)
-                    .map { conn }
+                return conn.authenticate(username: credentials.username,
+                                         database: credentials.database,
+                                         password: credentials.password)
+                                    .map { conn }
             }
         } catch {
             return eventLoop.makeFailedFuture(error)
