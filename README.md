@@ -1,4 +1,4 @@
-![test](https://github.com/vapor-community/Vii/workflows/test/badge.svg)
+![test](https://github.com/vapor-community/Vii/workflows/test/badge.svg) [![Code Coverage](https://codecov.io/gh/vapor-community/Vii/branch/master/graph/badge.svg)](https://codecov.io/gh/vapor-community/Vii) ![GitHub](https://img.shields.io/github/license/vapor-community/Vii)
 
 # Vii
 
