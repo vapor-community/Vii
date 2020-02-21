@@ -5,7 +5,7 @@ extension PostgresConnection {
         do {
             let address: SocketAddress
             #if os(Linux)
-            address = try .makeAddressResolvingHost(hostname, port: credentials.port)
+            address = try .makeAddressResolvingHost(credentials.host, port: credentials.port)
             #else
             address = try .init(ipAddress: credentials.host, port: credentials.port)
             #endif
@@ -19,12 +19,4 @@ extension PostgresConnection {
             return eventLoop.makeFailedFuture(error)
         }
     }
-}
-
-var hostname: String {
-    #if os(Linux)
-    return "psql"
-    #else
-    return "127.0.0.1"
-    #endif
 }

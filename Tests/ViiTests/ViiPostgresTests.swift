@@ -28,5 +28,3 @@ final class ViiPostgresTests: XCTestCase {
         XCTAssertEqual(classDeclaration, "final class DemoTable: Model, Content {")
     }
 }
-
-
