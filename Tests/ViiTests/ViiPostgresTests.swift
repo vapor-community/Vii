@@ -23,8 +23,7 @@ final class ViiPostgresTests: XCTestCase {
     func testGetTableOutput() throws {
         let connection = try! ConnectionFactory.getViiConnection(selectedDb: ViiDatabaseType.postgres, eventLoop: self.eventLoop, credentials: credentials)
         defer { connection.close() }
-        let tables = try! connection.getTables().wait()
-        let output = try GenerateFile.generateFileContents(table: tables[20], connection: connection)
+        let output = try GenerateFile.generateFileContents(table: Table(tableName: "DemoTable"), connection: connection)
         let classDeclaration = output.classDeclaration
         XCTAssertEqual(classDeclaration, "final class DemoTable: Model, Content {")
     }
