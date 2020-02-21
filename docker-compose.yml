@@ -1,13 +1,15 @@
+# docker-compose build
+# docker-compose up --abort-on-container-exit
 version: '3'
 services:
   vii:
     depends_on:
-      - postgres
+      - psql
     build: .
     environment:
       - DATABASE_HOSTNAME=postgres
       - DATABASE_PORT=5432
-  postgres:
+  psql:
     image: "postgres"
     volumes:
       - ./seed.sql:/docker-entrypoint-initdb.d/init.sql
