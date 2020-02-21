@@ -175,9 +175,8 @@ public struct FileContents {
     /// returns the file contents
     public func getFileContents() -> String {
         return """
-        \(imports) \(classDeclaration) \(schemaFormatted) \(primaryKeyDeclarationFormatted)
-        \(foreignKeyDeclarationsFormatted) \(columnDeclarationsFormatted) \(getInitializer())
-        \(getFullInitializer()) \(endDeclaration)
+        \(imports)\(classDeclaration)\(schemaFormatted)\(primaryKeyDeclarationFormatted)        \(foreignKeyDeclarationsFormatted)\(columnDeclarationsFormatted)\(getInitializer())
+        \(getFullInitializer())\(endDeclaration)
         """
     }
 }
