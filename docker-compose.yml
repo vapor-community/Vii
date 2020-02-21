@@ -1,0 +1,17 @@
+version: '3'
+services:
+  vii:
+    depends_on:
+      - postgres
+    build: .
+    environment:
+      - DATABASE_HOSTNAME=postgres
+      - DATABASE_PORT=5432
+  postgres:
+    image: "postgres"
+    volumes:
+      - ./seed.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_DB=vii-test
+      - POSTGRES_USER=vapor
+      - POSTGRES_PASSWORD=password

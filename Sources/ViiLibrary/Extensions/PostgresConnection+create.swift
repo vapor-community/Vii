@@ -5,7 +5,7 @@ extension PostgresConnection {
         do {
             let address: SocketAddress
             #if os(Linux)
-            address = try .makeAddressResolvingHost("localhost", port: credentials.port)
+            address = try .makeAddressResolvingHost("postgres", port: credentials.port)
             #else
             address = try .init(ipAddress: credentials.host, port: credentials.port)
             #endif

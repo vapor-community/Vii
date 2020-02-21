@@ -10,8 +10,6 @@ public class ConnectionFactory {
                 return try ViiMySQLConnection(eventLoop: eventLoop, credentials: credentials)
             case .postgres:
                 return try ViiPostgresConnection(eventLoop: eventLoop, credentials: credentials)
-            case .sqlite:
-                return try ViiMySQLConnection(eventLoop: eventLoop, credentials: credentials)
             }
-        }
+    }
 }
