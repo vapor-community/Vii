@@ -17,11 +17,19 @@ public struct Column: ViiColumn, Codable, Equatable {
         if SQLType.timestampable.contains(SQLType(self.dataType)) { return true }
         return false
     }
+    
+    func isJson() -> Bool {
+        if SQLType.nestedField.contains(SQLType(self.dataType)) { return true }
+        return false
+    }
 
     func getPropertyWrapper() -> String {
         if isTimestamp() {
             let triggerEnumCase = self.getTimestampEnumeration()
             return "@Timestamp(key: \"\(self.columnName)\", on: \(triggerEnumCase))"
+        }
+        if isJson() {
+            return "@NestedField(key: \"\(self.columnName)\")"
         }
         return "@Field(key: \"\(self.columnName)\")"
     }

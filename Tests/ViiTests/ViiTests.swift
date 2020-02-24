@@ -17,6 +17,7 @@ final class ViiTests: XCTestCase {
         Column(columnName: "sys_deletion_dt", dataType: "date", isNullable: false),
         Column(columnName: "abbreviations", dataType: "_char", isNullable: false),
         Column(columnName: "section_id", dataType: "int", isNullable: false),
+        Column(columnName: "json_field", dataType: "json", isNullable: false),
     ]
     let primaryKey = PrimaryKey(columnName: "user_id", dataType: "uuid", isNullable: true)
     let foreignKeys = [ForeignKey(columnName: "category_id", dataType: "uuid", isNullable: false, constrainedTable: "category")]
@@ -109,7 +110,7 @@ final class ViiTests: XCTestCase {
     func testTrimmedColumns() throws {
         let contents = FileContents(originalTableName: table.tableName, columns: columns, primaryKey: primaryKey, foreignKeys: foreignKeys)
         let trimmedColumns = contents.trimmedColumns
-        let expected = [columns[2], columns[3], columns[4], columns[5], columns[6], columns[7], columns[8], columns[9]]
+        let expected = [columns[2], columns[3], columns[4], columns[5], columns[6], columns[7], columns[8], columns[9], columns[10]]
         XCTAssertEqual(trimmedColumns, expected)
     }
 
@@ -195,6 +196,12 @@ final class ViiTests: XCTestCase {
         XCTAssertEqual(body.getInitializerBody(), "\n\t\tself.userId = userId\n\t\tself.categoryId = categoryId\n\t}")
     }
 
+    func testNestedFieldWrapper() throws {
+        let created = FileContents(originalTableName: table.tableName, columns: [columns[10]], primaryKey: primaryKey, foreignKeys: [])
+        let declaration = created.columnProperties!
+        XCTAssertEqual(declaration, "\n\t@NestedField(key: \"json_field\")\n\tvar jsonField: UnMappedType\n")
+    }
+    
     static var allTests = [
         ("testPascalCaseTable", testPascalCaseTable),
         ("testSpecialChars", testSpecialChars),
@@ -222,5 +229,6 @@ final class ViiTests: XCTestCase {
         ("testForeignKeyInitializerArguments", testForeignKeyInitializerArguments),
         ("testOptionalForeignKeyInitializerArguments", testOptionalForeignKeyInitializerArguments),
         ("testInitializerSignature", testInitializerSignature),
+        ("testNestedFieldWrapper", testNestedFieldWrapper)
     ]
 }

@@ -4,27 +4,38 @@ import NIO
 @testable import ViiLibrary
 
 final class ViiPostgresTests: XCTestCase {
-    private var group: EventLoopGroup!
-    private var eventLoop: EventLoop {
-        return self.group.next()
-    }
-    
-    let credentials = Credential(port: 5432, host: "psql", username: "vapor", password: "password", database: "vii-test")
+    var eventLoopGroup: EventLoopGroup!
+    var connection: ViiPostgresConnection!
+    let credentials = Credential(port: 5432, host: hostname, username: "vapor", password: "password", database: "vii-test")
+    var tables: [Table]!
     
     override func setUp() {
-        self.group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        self.eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        self.connection = try! ViiPostgresConnection(eventLoop: self.eventLoopGroup.next(), credentials: credentials)
+        self.tables = try! self.connection.getTables().wait()
     }
     
     override func tearDown() {
-        XCTAssertNoThrow(try self.group.syncShutdownGracefully())
-        self.group = nil
+        XCTAssertNoThrow(try self.eventLoopGroup.syncShutdownGracefully())
+        self.eventLoopGroup = nil
     }
 
-    func testGetTableOutput() throws {
-        let connection = try! ConnectionFactory.getViiConnection(selectedDb: ViiDatabaseType.postgres, eventLoop: self.eventLoop, credentials: credentials)
-        defer { connection.close() }
-        let output = try GenerateFile.generateFileContents(table: Table(tableName: "DemoTable"), connection: connection)
-        let classDeclaration = output.classDeclaration
-        XCTAssertEqual(classDeclaration, "final class DemoTable: Model, Content {")
+    func testGetTableCount() throws {
+        XCTAssertEqual(self.tables.count, 2)
     }
+    
+    func testArrayColumn() throws {
+        let table = self.tables[1]
+        let contents = try! GenerateFile.generateFileContents(table: table, connection: self.connection).getFileContents()
+        XCTAssertEqual(contents.contains("@Field(key: \"is_array\")"), true)
+        XCTAssertEqual(contents.contains("var isArray: [String]?"), true)
+    }
+}
+
+var hostname: String {
+    #if os(Linux)
+    return "psql"
+    #else
+    return "127.0.0.1"
+    #endif
 }

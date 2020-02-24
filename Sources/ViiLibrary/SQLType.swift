@@ -190,14 +190,13 @@ struct SQLType: Equatable {
         switch self {
         case .bit, .bpchar, .bytea, .varbit, ._bit, ._bpchar, ._bytea, ._varbit: return "Data"
         case .bool, .boolean, ._bool: return "Bool"
-        case .box, .point, .polygon: return "/* Defaulted to String as Postgres geometric types are unsupported*/String"
         case .char, .mediumText, .longText, .text, .tinyText, .varchar, ._char, ._text: return "String"
         case .dec, .decimal, .double, .money, .numeric, ._money, ._numeric: return "Double"
         case .date, .dateTime, .time, .timestamp, .timestampz: return "Date"
         case .float, .float4, .float8, ._float4, ._float8: return "Float"
         case .int, .int2, .int4, .int8, .tinyInt, .smallInt, .mediumInt,
              .bigInt, .year, ._int2, ._int4, ._int8: return "Int"
-        case .json, ._json, ._jsonb: return "JSON"
+        case .json, ._json, ._jsonb: return "UnMappedType"
         case .jsonb: return "JSON"
         case .uuid, ._uuid: return "UUID"
         case .xml, ._xml: return "XML"
@@ -206,7 +205,7 @@ struct SQLType: Equatable {
     }
 
     static let foundationRequired: [SQLType] = [
-                                                .uuid, ._uuid, .json, .jsonb, .xml, .date, .dateTime,
+                                                .uuid, ._uuid, .xml, .date, .dateTime,
                                                 .time, .timestamp, .timestampz, .bit, .bytea, .varbit
                                                ]
     static let timestampable: [SQLType] = [.date, .dateTime, .time, .timestamp, .timestampz]
@@ -215,4 +214,11 @@ struct SQLType: Equatable {
                                              ._float4, ._float8, ._int2, ._int4, ._int8, ._json,
                                              ._jsonb, ._money, ._numeric, ._text, ._uuid, ._xml
                                           ]
+    static let nestedField: [SQLType] = [.json, .jsonb]
+}
+
+final class UnMappedType {
+    /// This `UnMappedType` represents a situation where Vii knows how to map this type
+    /// but it doesn't know what the implementation of that type should be
+    /// you should udapte your model with the correct implementation for this PropertyWrapper
 }
