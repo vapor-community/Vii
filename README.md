@@ -30,7 +30,7 @@ So to use with Postgres DB.
 swift run Vii postgres
 ```
 
-# Property Wrappers
+## Property Wrappers
 The following lists the property wrappers that are currently implemented
 
 ## @ID
@@ -41,6 +41,9 @@ Unspecialized columns are mapped to the `@Field` property wrapper.
 
 ## @NestedField
 Columns declared as `json` are mapped into the  `@NestedField` property wrapper. Vii does not analyze the content of columns, so it is unable to infer the structure of the json. Vapor requires this to be declared. Vii will automatically declare the property of type `UnMappedType`. The user should then replace this declaration with a more fitting one.
+
+## @CompoundField
+Vii cannot infer this from a simple scan of the database. Again, the user would have to declare this property type manually
 
 ## @Timestamp
 Vapor's `@Timestamp` propertyWrapper uses an enum called `Trigger` which helps Fluent determine whether to update this column on creation, update or deletion. Because this is not derivable from the database columns directly, Vii makes an educated guess on what case to apply to the timestamp, this is done based on the column name.

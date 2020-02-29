@@ -1,12 +1,10 @@
-// swift-tools-version:5.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
+// swift-tools-version:5.2
 import PackageDescription
 
 let package = Package(
     name: "vii",
     platforms: [
-       .macOS(.v10_14)
+       .macOS(.v10_15)
     ],
     products: [
       .executable(name: "Vii", targets: ["Vii"]),
@@ -21,12 +19,24 @@ let package = Package(
     targets: [
         .target(
             name: "Vii",
-            dependencies: ["ConsoleKit", "ViiLibrary"]),
+            dependencies: [
+                .product(name: "ConsoleKit", package: "console-kit"),
+                .byName(name: "ViiLibrary")
+            ]
+        ),
         .target(
             name: "ViiLibrary",
-            dependencies: ["SQLKit", "PostgresKit", "MySQLKit"]),
+            dependencies: [
+                .product(name: "SQLKit", package: "sql-kit"),
+                .product(name: "PostgresKit", package: "postgres-kit"),
+                .product(name: "MySQLKit", package: "mysql-kit")
+            ]
+        ),
         .testTarget(
             name: "ViiTests",
-            dependencies: ["ViiLibrary"]),
+            dependencies: [
+                .byName(name: "ViiLibrary")
+            ]
+        )
     ]
 )
